@@ -1,0 +1,30 @@
+apply plugin: 'java'
+
+group = 'com.oracle'
+version = '1.0.0'
+description = 'Oracle JDBC log analyzer tool'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    withJavadocJar()
+    withSourcesJar()
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+processResources {
+    from('LICENSE.txt') {
+        into 'META-INF'
+    }
+}
