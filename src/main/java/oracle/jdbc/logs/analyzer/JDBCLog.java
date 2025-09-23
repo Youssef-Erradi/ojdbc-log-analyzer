@@ -413,7 +413,8 @@ public class JDBCLog {
 
         matcherHolder = closedConnectionsPattern.matcher(line);
         if (matcherHolder.find()) {
-          if (!line.contains("ORA-17909") && !line.contains("CONNECTION_ID")) {
+          final var nextLine = bufferedReader.readLine().strip();
+          if (!nextLine.endsWith(" null")) {
             if (isUCPFormatted)
               timestamp = ZonedDateTime.parse(line.split(UCP)[0].strip(), LogError.UCP_TIMESTAMP_FORMATTER).toString();
             else {
