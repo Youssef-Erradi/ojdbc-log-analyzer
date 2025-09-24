@@ -16,7 +16,7 @@ package oracle.jdbc.logs.model;
  * @param sql The actual SQL query String.
  * @param executionTime the time it took to run the query (in ms).
  */
-public record JDBCExecutedQuery(String timestamp, String sql, int executionTime) {
+public record JDBCExecutedQuery(String timestamp, String sql, int executionTime, String connectionId, String tenant) {
 
   /**
    * <p>
@@ -27,11 +27,13 @@ public record JDBCExecutedQuery(String timestamp, String sql, int executionTime)
    */
   public String toJSONString() {
     return """
-     {"timestamp":"%s","sql":"%s","executionTime":"%sms"}
+     {"timestamp":"%s","sql":"%s","executionTime":"%sms","connectionId":%s,"tenant":%s}
      """.formatted(timestamp,
         sql.replace("\n", "\\n")
           .replace("\t", "\\t"),
-        executionTime)
+        executionTime,
+        connectionId == null ? "null" : "\""+connectionId+"\"",
+        tenant == null ? "null" : "\""+connectionId+"\"")
       .strip();
   }
 

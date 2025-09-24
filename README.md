@@ -201,87 +201,121 @@ Example of the extracted information printed as JSON:
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "drop directory TEST_DIR",
-    "executionTime": "18ms"
+    "executionTime": "18ms",
+    "connectionId": "0B9IF/DmROGJx/k2EsbJnw==",
+    "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "drop user tkpjb35428646 cascade",
-    "executionTime": "16ms"
+    "executionTime": "16ms",
+    "connectionId": "0B9IF/DmROGJx/k2EsbJnw==",
+    "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "create user tkpjb35428646 identified by tkpjb35428646 default tablespace system quota unlimited on system",
-    "executionTime": "28ms"
+    "executionTime": "28ms",
+    "connectionId": "0B9IF/DmROGJx/k2EsbJnw==",
+    "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "grant connect, resource, unlimited tablespace,ALTER SESSION to tkpjb35428646",
-    "executionTime": "9ms"
+    "executionTime": "9ms",
+    "connectionId": "0B9IF/DmROGJx/k2EsbJnw==",
+    "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "grant create view, create session, create synonym,create type, create sequence, CREATE TABLE,create procedure, select any table to tkpjb35428646",
-    "executionTime": "9ms"
+    "executionTime": "9ms",
+    "connectionId": "0B9IF/DmROGJx/k2EsbJnw==",
+    "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "grant create database link to tkpjb35428646",
-    "executionTime": "7ms"
+    "executionTime": "7ms",
+    "connectionId": "0B9IF/DmROGJx/k2EsbJnw==",
+    "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "grant CREATE CLUSTER, CREATE OPERATOR, CREATE TRIGGER, CREATE INDEXTYPE to tkpjb35428646",
-    "executionTime": "8ms"
+    "executionTime": "8ms",
+    "connectionId": "0B9IF/DmROGJx/k2EsbJnw==",
+    "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "grant create any directory,drop any directory to tkpjb35428646",
-    "executionTime": "8ms"
+    "executionTime": "8ms",
+    "connectionId": "0B9IF/DmROGJx/k2EsbJnw==",
+    "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "grant select on emp to public",
-    "executionTime": "10ms"
+    "executionTime": "10ms",
+    "connectionId": "LuEy0UraR/CzZiaKrnoFJA==",
+    "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "grant select on dept to public",
-    "executionTime": "7ms"
+    "executionTime": "7ms",
+    "connectionId": "LuEy0UraR/CzZiaKrnoFJA==",
+    "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "create directory TEST_DIR as '/ade/b/1465033565/oracle/work'",
-    "executionTime": "10ms"
+    "executionTime": "10ms",
+    "connectionId": "akfhcI14TCqfOnUNs3XMww==",
+    "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:13",
     "sql": "ALTER SESSION SET TIME_ZONE = 'PST8PDT'",
-    "executionTime": "2ms"
+    "executionTime": "2ms",
+    "connectionId": "Ou7tTDJKTaqGwfDVqVR5Rw==",
+    "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:13",
     "sql": "SELECT DBTIMEZONE FROM DUAL",
-    "executionTime": "112ms"
+    "executionTime": "112ms",
+    "connectionId": "Ou7tTDJKTaqGwfDVqVR5Rw==",
+    "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:28:14",
     "sql": "drop user tkpjb35428646 cascade",
-    "executionTime": "8ms"
+    "executionTime": "8ms",
+    "connectionId": "oRBTwv3qQPOXXuktAXpezA==",
+    "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:28:14",
     "sql": "select sid,serial# from v$session where username='TKPJB35428646'",
-    "executionTime": "15ms"
+    "executionTime": "15ms",
+    "connectionId": "oRBTwv3qQPOXXuktAXpezA==",
+    "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:28:14",
     "sql": "alter system kill session '279,43180' immediate",
-    "executionTime": "10ms"
+    "executionTime": "10ms",
+    "connectionId": "oRBTwv3qQPOXXuktAXpezA==",
+    "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:28:14",
     "sql": "drop user tkpjb35428646 cascade",
-    "executionTime": "58ms"
+    "executionTime": "58ms",
+    "connectionId": "oRBTwv3qQPOXXuktAXpezA==",
+    "tenant": "CDB1_PDB1"
   }
 ]
 ```

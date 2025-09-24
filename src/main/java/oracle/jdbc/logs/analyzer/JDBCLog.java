@@ -338,6 +338,7 @@ public class JDBCLog {
 
     final Pattern queriesPattern = Pattern.compile("[\\s|.]endCurrentSql");
     final Pattern sqlAndTimePattern = Pattern.compile("sql=([\\S\\s]*), time=(.*)", Pattern.MULTILINE);
+    final Pattern connectionIdAndTenantPattern = Pattern.compile("CONNECTION_ID=(.*),TENANT=(.*),SQL=", Pattern.MULTILINE);
     final List<JDBCExecutedQuery> queries = new ArrayList<>();
 
     String line;
@@ -374,10 +375,24 @@ public class JDBCLog {
           // Add the last line (that has the `, time=` string).
           multilineSql.append(line);
 
+          String sql = null;
+          int executionTime = 0;
+          String connectionId = null;
+          String tenant = null;
           final Matcher sqlAndTimeMatcher = sqlAndTimePattern.matcher(multilineSql.toString());
-          if (sqlAndTimeMatcher.find())
-            queries.add(new JDBCExecutedQuery(timestamp, sqlAndTimeMatcher.group(1),
-              Integer.parseInt(sqlAndTimeMatcher.group(2).replace("ms","").strip())));
+          if (sqlAndTimeMatcher.find()) {
+            sql = sqlAndTimeMatcher.group(1);
+            executionTime = Integer.parseInt(sqlAndTimeMatcher.group(2).replace("ms","").strip());
+          }
+
+          final Matcher connectionIdAndTenantMatcher = connectionIdAndTenantPattern.matcher(line);
+          if (connectionIdAndTenantMatcher.find()) {
+            connectionId = connectionIdAndTenantMatcher.group(1);
+            tenant = connectionIdAndTenantMatcher.group(2);
+          }
+
+          queries.add(new JDBCExecutedQuery(timestamp, sql, executionTime, connectionId, tenant));
+
         }
       }
     }
