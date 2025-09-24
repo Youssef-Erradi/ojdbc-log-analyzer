@@ -418,4 +418,39 @@ public class LogError {
       return null;
     }
   }
+
+  /**
+   * <p>
+   *   Returns a JSON string representation of this object.
+   * </p>
+   *
+   * @return a JSON-formatted {@link String} representing the current state of this object.
+   *
+   * @throws RuntimeException if an {@link IOException} occurs while reading the log file.
+   */
+  public String toJSONString() {
+    try {
+      return """
+        {"logEntry": %s,"sql":"%s","originalSql":"%s","errorMessage":"%s","packetDumps":%s,"tenant":"%s","logLines":"%s","documentationLink":"%s","sqlExecutionTime":%d,"nearestTrace":%s,"connectionId":"%s"}
+        """.formatted(logEntry.toJSONString(),
+          getSql(),
+          getOriginalSql(),
+          getErrorMessage(),
+          getPacketDumps().stream()
+            .map(JDBCPacketDump::toJSONString)
+            .collect(Collectors.joining(",", "[", "]")),
+          getTenant(),
+          getLogLines()
+            .replace("\n", "\\n")
+            .replace("\t", "\\t"),
+          getDocumentationLink(),
+          getSQLExecutionTime(),
+          getNearestTrace().toJSONString(),
+          getConnectionId())
+        .strip();
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to serialize to JSON", e);
+    }
+  }
+
 }

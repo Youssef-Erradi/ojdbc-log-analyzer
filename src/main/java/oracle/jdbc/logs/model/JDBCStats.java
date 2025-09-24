@@ -167,7 +167,7 @@ public record JDBCStats(String fileSize,
    * </p>
    *
    * <p>
-   *   <strong>Note: </strong>Assumes {@code averageQueryTime} ends with "ms" and contains a valid number.
+   *   <strong>Note:</strong>Assumes {@code averageQueryTime} ends with "ms" and contains a valid number.
    * </p>
    *
    * @return the average query time as a double in milliseconds.
@@ -208,6 +208,34 @@ public record JDBCStats(String fileSize,
    */
   public String timespan() {
     return startTime + " to " + endTime;
+  }
+
+  /**
+   * <p>
+   *   Returns a JSON string representation of this object.
+   * </p>
+   *
+   * @return a JSON-formatted {@link String} representing the current state of this object
+   */
+  public String toJSONString() {
+    return """
+      {"fileSize":"%s","lineCount":%d,"startTime":"%s","endTime":"%s","duration":"%s","errorCount":%d,"queryCount":%d,"averageQueryTime":"%s","openedConnectionCount":%d,"closedConnectionCount":%d,"roundTripCount":%d,"sentPacketCount":%d,"receivedPacketCount":%d,"bytesConsumed":"%s","bytesProduced":"%s"}
+      """.formatted(fileSize,
+        lineCount,
+        startTime,
+        endTime,
+        duration.toString(),
+        errorCount,
+        queryCount,
+        averageQueryTime,
+        openedConnectionCount,
+        closedConnectionCount,
+        roundTripCount,
+        sentPacketCount,
+        receivedPacketCount,
+        bytesConsumed,
+        bytesProduced)
+      .strip();
   }
 
 }

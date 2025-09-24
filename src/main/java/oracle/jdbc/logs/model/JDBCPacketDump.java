@@ -19,4 +19,22 @@ package oracle.jdbc.logs.model;
 
 public record JDBCPacketDump(String log, String formattedPacket) {
 
+  /**
+   * <p>
+   *   Returns a JSON string representation of this object.
+   * </p>
+   *
+   * @return a JSON-formatted {@link String} representing the current state of this object
+   */
+  public String toJSONString() {
+    return """
+      {"log":"%s","formattedPacket":"%s"}
+      """.formatted(log.replace("\n", "\\n").replace("\t", "\\t"),
+        formattedPacket.replace("\n", "\\n")
+          .replace("\t", "\\t")
+          .replace("\\", "\\\\")
+          .replace("\"", "\\\""))
+      .strip();
+  }
+
 }

@@ -32,6 +32,20 @@ public record JDBCConnectionEvent(String timestamp, Event event, String details)
 
   /**
    * <p>
+   *   Returns a JSON string representation of this object.
+   * </p>
+   *
+   * @return a JSON-formatted {@link String} representing the current state of this object
+   */
+  public String toJSONString() {
+    return """
+     {"timestamp": "%s","event": "%s","details": "%s"}
+     """.formatted(timestamp, event.name(), details)
+      .strip();
+  }
+
+  /**
+   * <p>
    *   Enum values of supported connection event types.
    * </p>
    */

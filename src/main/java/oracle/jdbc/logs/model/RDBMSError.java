@@ -20,5 +20,17 @@ package oracle.jdbc.logs.model;
  */
 
 public record RDBMSError(String errorMessage, String documentationLink) {
-
+  /**
+   * <p>
+   *   Returns a JSON string representation of this object.
+   * </p>
+   *
+   * @return a JSON-formatted {@link String} representing the current state of this object
+   */
+  public String toJSONString() {
+    return """
+    {"errorMessage":"%s","documentationLink":"%s"}
+    """.formatted(errorMessage, documentationLink)
+      .strip();
+  }
 }

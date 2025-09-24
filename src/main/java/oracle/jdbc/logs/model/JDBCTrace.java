@@ -16,4 +16,18 @@ package oracle.jdbc.logs.model;
  */
 public record JDBCTrace(String timestamp, String executedMethod) {
 
+  /**
+   * <p>
+   *   Returns a JSON string representation of this object.
+   * </p>
+   *
+   * @return a JSON-formatted {@link String} representing the current state of this object
+   */
+  public String toJSONString() {
+    return """
+      {"timestamp": "%s","executedMethod": "%s"}
+      """.formatted(timestamp, executedMethod)
+      .strip();
+  }
+
 }

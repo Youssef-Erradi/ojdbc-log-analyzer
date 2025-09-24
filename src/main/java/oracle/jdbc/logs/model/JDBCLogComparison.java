@@ -42,6 +42,20 @@ public record JDBCLogComparison(Summary summary, Performance performance, Error 
 
   /**
    * <p>
+   *   Returns a JSON string representation of this object.
+   * </p>
+   *
+   * @return a JSON-formatted {@link String} representing the current state of this object
+   */
+  public String toJSONString() {
+    return """
+        {"summary":%s,"performance":%s,"error":%s,"network":%s}
+        """.formatted(summary.toJSONString(), performance.toJSONString(), error.toJSONString(), network.toJSONString())
+      .strip();
+  }
+
+  /**
+   * <p>
    *   Represents a summary of log file comparisons, including file names, sizes,
    *   line counts, durations, and timespans.
    * </p>
@@ -80,7 +94,32 @@ public record JDBCLogComparison(Summary summary, Performance performance, Error 
 
     String currentLogFileTimespan,
     Duration currentLogFileDuration
-  ) {}
+  ) {
+    /**
+     * <p>
+     *   Returns a JSON string representation of this object.
+     * </p>
+     *
+     * @return a JSON-formatted {@link String} representing the current state of this object
+     */
+    public String toJSONString() {
+      return """
+        {"referenceLogFileName":"%s","currentLogFileName":"%s","referenceLogFileSize":"%s","currentLogFileSize":"%s","referenceLogFileLineCount":%d,"currentLogFileLineCount":%d,"lineCountDelta":"%s","referenceLogFileTimespan":"%s","referenceLogFileDuration":"%s","currentLogFileTimespan":"%s","currentLogFileDuration":"%s"}
+        """.formatted(
+          referenceLogFileName,
+          currentLogFileName,
+          referenceLogFileSize,
+          currentLogFileSize,
+          referenceLogFileLineCount,
+          currentLogFileLineCount,
+          lineCountDelta,
+          referenceLogFileTimespan,
+          referenceLogFileDuration,
+          currentLogFileTimespan,
+          currentLogFileDuration)
+        .strip();
+    }
+  }
 
   /**
    * <p>
@@ -107,7 +146,21 @@ public record JDBCLogComparison(Summary summary, Performance performance, Error 
     String referenceAverageQueryTime,
     String currentAverageQueryTime,
     String averageQueryTimeDelta
-  ){}
+  ){
+    /**
+     * <p>
+     *   Returns a JSON string representation of this object.
+     * </p>
+     *
+     * @return a JSON-formatted {@link String} representing the current state of this object
+     */
+    public String toJSONString() {
+      return """
+        {"referenceQueryCount":%d,"currentQueryCount":%d,"queryCountDelta":"%s","referenceAverageQueryTime":"%s","currentAverageQueryTime":"%s","averageQueryTimeDelta":"%s"}
+        """.formatted(referenceQueryCount, currentQueryCount, queryCountDelta, referenceAverageQueryTime, currentAverageQueryTime, averageQueryTimeDelta)
+        .strip();
+    }
+  }
 
   /**
    * <p>
@@ -123,7 +176,21 @@ public record JDBCLogComparison(Summary summary, Performance performance, Error 
     long referenceErrorCount,
     long currentErrorCount,
     String totalErrorsDelta
-  ){}
+  ){
+    /**
+     * <p>
+     *   Returns a JSON string representation of this object.
+     * </p>
+     *
+     * @return a JSON-formatted {@link String} representing the current state of this object
+     */
+    public String toJSONString() {
+      return """
+        {"referenceErrorCount":%d,"currentErrorCount":%d,"totalErrorsDelta":"%s"}
+        """.formatted(referenceErrorCount, currentErrorCount, totalErrorsDelta)
+        .strip();
+    }
+  }
 
   /**
    * <p>
@@ -145,7 +212,21 @@ public record JDBCLogComparison(Summary summary, Performance performance, Error 
     String referenceBytesProduced,
     String currentBytesProduced,
     String bytesProducedDelta
-  ){}
+  ){
+    /**
+     * <p>
+     *   Returns a JSON string representation of this object.
+     * </p>
+     *
+     * @return a JSON-formatted {@link String} representing the current state of this object
+     */
+    public String toJSONString() {
+      return """
+        {"referenceBytesConsumed":"%s","currentBytesConsumed":"%s","bytesConsumedDelta":"%s","referenceBytesProduced":"%s","currentBytesProduced":"%s","bytesProducedDelta":"%s"}
+        """.formatted(referenceBytesConsumed, currentBytesConsumed,bytesConsumedDelta, referenceBytesProduced, currentBytesProduced, bytesProducedDelta)
+        .strip();
+    }
+  }
 
 }
 

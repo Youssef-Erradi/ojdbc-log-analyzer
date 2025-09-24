@@ -220,4 +220,19 @@ public class LogEntry {
   public String toString() {
     return "beginLine: " + beginLine + ", endLine: " + endLine;
   }
+
+  /**
+   * <p>
+   *   Returns a JSON string representation of this object.
+   * </p>
+   *
+   * @return a JSON-formatted {@link String} representing the current state of this object
+   */
+  public String toJSONString() {
+    return """
+      {"logFile": "%s","beginLine": %d,"endLine": %d}
+      """.formatted(logFile, beginLine, endLine)
+      .strip();
+  }
+
 }

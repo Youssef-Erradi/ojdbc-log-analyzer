@@ -18,4 +18,21 @@ package oracle.jdbc.logs.model;
  */
 public record JDBCExecutedQuery(String timestamp, String sql, int executionTime) {
 
+  /**
+   * <p>
+   *   Returns a JSON string representation of this object.
+   * </p>
+   *
+   * @return a JSON-formatted {@link String} representing the current state of this object
+   */
+  public String toJSONString() {
+    return """
+     {"timestamp":"%s","sql":"%s","executionTime":"%sms"}
+     """.formatted(timestamp,
+        sql.replace("\n", "\\n")
+          .replace("\t", "\\t"),
+        executionTime)
+      .strip();
+  }
+
 }
