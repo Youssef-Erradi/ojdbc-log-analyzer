@@ -16,7 +16,7 @@ import java.net.URL;
  */
 final class Utils {
 
-  private static final String FILE_LOCATION_CANNOT_BE_NULL_NOR_EMPTY = "fileLocation cannot be null or empty.";
+  private static final String FILE_LOCATION_CANNOT_BE_NULL_OR_EMPTY = "fileLocation cannot be null or empty.";
 
   private Utils() {}
 
@@ -31,7 +31,7 @@ final class Utils {
    * @throws IllegalArgumentException if {@code fileLocation} is null or blank
    */
   static BufferedReader getBufferedReader(final String fileLocation) throws IOException {
-    requireNonBlank(fileLocation, FILE_LOCATION_CANNOT_BE_NULL_NOR_EMPTY);
+    requireNonBlank(fileLocation, FILE_LOCATION_CANNOT_BE_NULL_OR_EMPTY);
     return new BufferedReader(getReader(fileLocation));
   }
 
@@ -47,7 +47,7 @@ final class Utils {
    * @throws IllegalArgumentException if {@code location} is null or blank
    */
   static Reader getReader(final String fileLocation) throws IOException {
-    requireNonBlank(fileLocation, FILE_LOCATION_CANNOT_BE_NULL_NOR_EMPTY);
+    requireNonBlank(fileLocation, FILE_LOCATION_CANNOT_BE_NULL_OR_EMPTY);
 
     if (isURL(fileLocation))
       return new InputStreamReader(new URL(fileLocation).openStream());
@@ -63,7 +63,7 @@ final class Utils {
    * @throws IllegalArgumentException if {@code location} is null or blank
    */
   static boolean isURL(final String fileLocation) {
-    requireNonBlank(fileLocation, FILE_LOCATION_CANNOT_BE_NULL_NOR_EMPTY);
+    requireNonBlank(fileLocation, FILE_LOCATION_CANNOT_BE_NULL_OR_EMPTY);
     try {
       new URL(fileLocation);
       return true;
@@ -84,7 +84,7 @@ final class Utils {
    * @throws IllegalArgumentException if {@code fileLocation} is null or blank
    */
   static long getFileSize(String fileLocation) {
-    requireNonBlank(fileLocation, FILE_LOCATION_CANNOT_BE_NULL_NOR_EMPTY);
+    requireNonBlank(fileLocation, FILE_LOCATION_CANNOT_BE_NULL_OR_EMPTY);
 
     if (isURL(fileLocation)) {
       try {
