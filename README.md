@@ -4,8 +4,8 @@ The Oracle JDBC log analyzer tool is used to parse and extract meaningful inform
 It allows clients to access, query, and analyze log data stored in a file, whether the log file is located locally on the machine or available on the web (by supplying a URL).
 
 The library support the following log formatters:
+  - [OracleSimpleFormatter](https://docs.oracle.com/en/database/oracle/oracle-database/23/jajdb/oracle/jdbc/diagnostics/OracleSimpleFormatter.html) (This is the recommended formatter, since it provides more details such as connection id and tenant).
   - [SimpleFormatter (Default JUL formatter)](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/SimpleFormatter.html).
-  - [OracleSimpleFormatter](https://docs.oracle.com/en/database/oracle/oracle-database/23/jajdb/oracle/jdbc/diagnostics/OracleSimpleFormatter.html).
   - [UCPFormatter](https://docs.oracle.com/en/database/oracle/oracle-database/23/jjuar/oracle/ucp/util/logging/UCPFormatter.html).
 
 Key Features of JDBC/UCP log parsing:
