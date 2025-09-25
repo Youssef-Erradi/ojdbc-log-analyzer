@@ -431,22 +431,23 @@ public class LogError {
   public String toJSONString() {
     try {
       return """
-        {"logEntry": %s,"sql":"%s","originalSql":"%s","errorMessage":"%s","packetDumps":%s,"tenant":"%s","logLines":"%s","documentationLink":"%s","sqlExecutionTime":%d,"nearestTrace":%s,"connectionId":"%s"}
+        {"logEntry": %s,"sql":%s,"originalSql":%s,"errorMessage":"%s","packetDumps":%s,"tenant":%s,"logLines":"%s","documentationLink":"%s","sqlExecutionTime":%d,"nearestTrace":%s,"connectionId":%s}
         """.formatted(logEntry.toJSONString(),
-          getSql(),
-          getOriginalSql(),
+          getSql() == null ? "null" : "\""+getSql()+"\"",
+          getOriginalSql() == null ? "null" : "\""+getOriginalSql()+"\"",
           getErrorMessage(),
           getPacketDumps().stream()
             .map(JDBCPacketDump::toJSONString)
             .collect(Collectors.joining(",", "[", "]")),
-          getTenant(),
+          getTenant() == null ? "null" : "\""+getTenant()+"\"",
           getLogLines()
+            .replace("\"", "\\\"")
             .replace("\n", "\\n")
             .replace("\t", "\\t"),
           getDocumentationLink(),
           getSQLExecutionTime(),
-          getNearestTrace().toJSONString(),
-          getConnectionId())
+          getNearestTrace() == null ? "null" : getNearestTrace().toJSONString(),
+          getConnectionId() == null ? "null" : "\"" + getConnectionId() + "\"")
         .strip();
     } catch (IOException e) {
       throw new RuntimeException("Failed to serialize to JSON", e);
