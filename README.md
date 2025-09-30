@@ -23,10 +23,10 @@ Key Features of RDBMS/SQLNet trace files parsing:
 
 This project requires a JDK 17 or higher to build and/or run the code.
 
-If the JAVA_HOME environment variable is defined, this is what Gradle will use to build and run the project.
+If the `JAVA_HOME` environment variable is defined, this is what Gradle will use to build and run the project.
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home
+export JAVA_HOME=<path to JDK 17 home>
 ```
 
 If `JAVA_HOME` is not defined, Gradle will use the JDK found in the `PATH`, you can check the java version by running:
@@ -43,7 +43,7 @@ To build the project, use the embedded Gradle wrapper:
 ./gradlew build
 ```
 
-## Usage Example
+## Getting Started
 
 ### 1. Analyzing an Oracle JDBC log file
 
@@ -525,3 +525,15 @@ Example of the extracted information printed as JSON:
   }
 ]
 ```
+
+## Contributing
+
+This project welcomes contributions from the community. Before submitting a pull request, please [review our contribution guide](./CONTRIBUTING.md)
+
+## Security
+
+Please consult the [security guide](./SECURITY.md) for our responsible security vulnerability disclosure process
+
+## License
+
+Copyright (c) 2025 year Oracle and/or its affiliates. Released under the Universal Permissive License v1.0 as shown at <https://oss.oracle.com/licenses/upl/>.

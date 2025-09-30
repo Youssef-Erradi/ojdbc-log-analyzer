@@ -12,9 +12,11 @@ package oracle.jdbc.logs.model;
  *   POJO to store an executed query's info.
  * </p>
  *
- * @param timestamp String representation of when the query was executed.
- * @param sql The actual SQL query String.
- * @param executionTime the time it took to run the query (in ms).
+ * @param timestamp     String representation of when the query was executed.
+ * @param sql           The actual SQL query as a String.
+ * @param executionTime The time it took to run the query, in milliseconds.
+ * @param connectionId  The identifier of the database connection used to execute the query.
+ * @param tenant        The tenant in which the query was run.
  */
 public record JDBCExecutedQuery(String timestamp, String sql, int executionTime, String connectionId, String tenant) {
 

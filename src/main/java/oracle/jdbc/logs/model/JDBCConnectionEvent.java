@@ -14,7 +14,7 @@ package oracle.jdbc.logs.model;
  *
  * @param timestamp String representation of the timestamp.
  * @param event {@link Event} enum value.
- * @param details event details
+ * @param details event details (such as socket and connection options) if available.
  */
 public record JDBCConnectionEvent(String timestamp, Event event, String details) {
 
