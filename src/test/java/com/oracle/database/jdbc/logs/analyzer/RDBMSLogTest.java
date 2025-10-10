@@ -1,11 +1,10 @@
-package oracle.jdbc.logs.analyzer;
+package com.oracle.database.jdbc.logs.analyzer;
 
-import oracle.jdbc.logs.model.RDBMSError;
-import oracle.jdbc.logs.model.RDBMSPacketDump;
+import com.oracle.database.jdbc.logs.model.RDBMSError;
+import com.oracle.database.jdbc.logs.model.RDBMSPacketDump;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 

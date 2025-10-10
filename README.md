@@ -47,16 +47,16 @@ To build the project, use the embedded Gradle wrapper:
 
 ### 1. Analyzing an Oracle JDBC log file
 
-JDBC and UCP logs can be parsed with `oracle.jdbc.logs.analyzer.JDBCLog` class
+JDBC and UCP logs can be parsed with `com.oracle.database.jdbc.logs.analyzer.JDBCLog` class
 
 Here's an example of how the APIs can be used:
 
 ```java
-import oracle.jdbc.logs.analyzer.JDBCLog;
-import oracle.jdbc.logs.model.JDBCConnectionEvent;
-import oracle.jdbc.logs.model.JDBCExecutedQuery;
-import oracle.jdbc.logs.model.JDBCStats;
-import oracle.jdbc.logs.model.LogError;
+import com.oracle.database.jdbc.logs.analyzer.JDBCLog;
+import com.oracle.database.jdbc.logs.model.JDBCConnectionEvent;
+import com.oracle.database.jdbc.logs.model.JDBCExecutedQuery;
+import com.oracle.database.jdbc.logs.model.JDBCStats;
+import com.oracle.database.jdbc.logs.model.LogError;
 
 import java.io.IOException;
 import java.util.stream.Collectors;
@@ -415,14 +415,14 @@ Comparison between two OJDBC log files:
 
 ### 2. Analyzing a RDBMS/SQLNet trace file
 
-RDBMS and SQLNet logs can be parsed with `oracle.jdbc.logs.analyzer.RDBMSLog` class
+RDBMS and SQLNet logs can be parsed with `analyzer.com.oracle.database.jdbc.logs.RDBMSLog` class
 
 Here's an example of how the APIs can be used:
 
 ```java
-import oracle.jdbc.logs.analyzer.RDBMSLog;
-import oracle.jdbc.logs.model.RDBMSError;
-import oracle.jdbc.logs.model.RDBMSPacketDump;
+import com.oracle.database.jdbc.logs.analyzer.RDBMSLog;
+import com.oracle.database.jdbc.logs.model.RDBMSError;
+import com.oracle.database.jdbc.logs.model.RDBMSPacketDump;
 
 import java.io.IOException;
 import java.util.List;

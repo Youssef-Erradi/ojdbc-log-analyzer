@@ -5,11 +5,11 @@
  ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl/
  */
 
-package oracle.jdbc.logs.analyzer;
+package com.oracle.database.jdbc.logs.analyzer;
 
-import oracle.jdbc.logs.model.RDBMSLogEntry;
-import oracle.jdbc.logs.model.RDBMSPacketDump;
-import oracle.jdbc.logs.model.RDBMSError;
+import com.oracle.database.jdbc.logs.model.RDBMSLogEntry;
+import com.oracle.database.jdbc.logs.model.RDBMSPacketDump;
+import com.oracle.database.jdbc.logs.model.RDBMSError;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static oracle.jdbc.logs.analyzer.Utils.*;
+import static com.oracle.database.jdbc.logs.analyzer.Utils.*;
 
 /**
  * <p>

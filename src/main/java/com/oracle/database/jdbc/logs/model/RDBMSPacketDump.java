@@ -5,20 +5,18 @@
  ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl/
  */
 
-package oracle.jdbc.logs.model;
+package com.oracle.database.jdbc.logs.model;
 
 /**
  * <p>
- *   POJO to store JDBC packet dump data.
+ *   POJO to store RDBMS packet dump data.
  * </p>
  *
- * @param log the corresponding log line for the packet.
+ * @param timestamp String representation of when the back was send/received.
  * @param formattedPacket String of formatted packet bytes
- *                        (as it appears in the Oracle JDBC log file).
+ *                        (as it appears in the SQLNet trace file).
  */
-
-public record JDBCPacketDump(String log, String formattedPacket) {
-
+public record RDBMSPacketDump(String timestamp, String formattedPacket) {
   /**
    * <p>
    *   Returns a JSON string representation of this object.
@@ -28,13 +26,11 @@ public record JDBCPacketDump(String log, String formattedPacket) {
    */
   public String toJSONString() {
     return """
-      {"log":"%s","formattedPacket":"%s"}
-      """.formatted(log.replace("\n", "\\n").replace("\t", "\\t"),
-        formattedPacket.replace("\n", "\\n")
-          .replace("\t", "\\t")
-          .replace("\\", "\\\\")
-          .replace("\"", "\\\""))
+    {"timestamp":"%s","formattedPacket":"%s"}
+    """.formatted(timestamp, formattedPacket.replace("\n", "\\n")
+        .replace("\t", "\\t")
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\""))
       .strip();
   }
-
 }
