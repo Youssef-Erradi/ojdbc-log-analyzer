@@ -1,4 +1,4 @@
-package oracle.jdbc.logs.analyzer;
+package com.oracle.database.jdbc.logs.analyzer;
 
 import java.io.BufferedReader;
 import java.io.File;

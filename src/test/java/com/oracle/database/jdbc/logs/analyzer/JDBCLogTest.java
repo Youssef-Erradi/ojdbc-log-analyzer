@@ -1,9 +1,9 @@
-package oracle.jdbc.logs.analyzer;
+package com.oracle.database.jdbc.logs.analyzer;
 
-import oracle.jdbc.logs.model.JDBCConnectionEvent;
-import oracle.jdbc.logs.model.JDBCExecutedQuery;
-import oracle.jdbc.logs.model.JDBCLogComparison;
-import oracle.jdbc.logs.model.JDBCStats;
+import com.oracle.database.jdbc.logs.model.JDBCConnectionEvent;
+import com.oracle.database.jdbc.logs.model.JDBCExecutedQuery;
+import com.oracle.database.jdbc.logs.model.JDBCLogComparison;
+import com.oracle.database.jdbc.logs.model.JDBCStats;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

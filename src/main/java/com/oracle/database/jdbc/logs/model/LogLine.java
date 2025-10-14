@@ -5,7 +5,7 @@
  ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl/
  */
 
-package oracle.jdbc.logs.model;
+package com.oracle.database.jdbc.logs.model;
 
 /**
  * A LogLine is a single line in a LogFile.

@@ -5,24 +5,27 @@
  ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl/
  */
 
-package oracle.jdbc.logs.analyzer;
+package com.oracle.database.jdbc.logs.analyzer;
 
-import oracle.jdbc.logs.model.*;
+import com.oracle.database.jdbc.logs.model.JDBCConnectionEvent;
+import com.oracle.database.jdbc.logs.model.JDBCExecutedQuery;
+import com.oracle.database.jdbc.logs.model.JDBCLogComparison;
+import com.oracle.database.jdbc.logs.model.JDBCStats;
+import com.oracle.database.jdbc.logs.model.LogEntry;
+import com.oracle.database.jdbc.logs.model.LogError;
+import com.oracle.database.jdbc.logs.model.LogLine;
 
-import java.net.URL;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static oracle.jdbc.logs.analyzer.Utils.*;
+import static com.oracle.database.jdbc.logs.analyzer.Utils.*;
 
 /**
  * <p>
@@ -81,7 +84,7 @@ public class JDBCLog {
    * @throws IllegalArgumentException If {@code logLocation} is null or empty.
    */
   public JDBCLog(String logLocation) throws IllegalArgumentException {
-    Utils.requireNonBlank(logLocation, "logLocation cannot be null nor blank.");
+    Utils.requireNonBlank(logLocation, "logLocation cannot be null or blank.");
     this.logLocation = logLocation;
   }
 
