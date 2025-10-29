@@ -5,7 +5,7 @@ plugins {
 
 group = 'com.oracle.database.jdbc'
 version = '1.0.0'
-description = 'A Log analyzer tool that parses JDBC/UCP and RDBMS/SQLNet logs to extract errors, events, SQL queries, metrics and supports analysis and comparison.'
+description = 'A log analyzer tool that parses JDBC/UCP and RDBMS/SQLNet logs to extract errors, events, SQL queries, metrics and supports analysis and comparison.'
 
 java {
   sourceCompatibility = JavaVersion.VERSION_17
@@ -39,7 +39,7 @@ publishing {
 
       pom {
         name = 'Oracle JDBC Log Analyzer'
-        description = 'A Log analyzer tool that parses JDBC/UCP and RDBMS/SQLNet logs to extract errors, events, SQL queries, metrics and supports analysis and comparison.'
+        description = 'A log analyzer tool that parses JDBC/UCP and RDBMS/SQLNet logs to extract errors, events, SQL queries, metrics and supports analysis and comparison.'
         url = 'https://github.com/oracle-samples/ojdbc-log-analyzer'
         licenses {
           license {
