@@ -1,30 +1,64 @@
-apply plugin: 'java'
+plugins {
+  id 'java'
+  id 'maven-publish'
+}
 
 group = 'com.oracle.database.jdbc'
 version = '1.0.0'
-description = 'Oracle JDBC log analyzer tool'
+description = 'A log analyzer tool that parses JDBC/UCP and RDBMS/SQLNet logs to extract errors, events, SQL queries, metrics and supports analysis and comparison.'
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-    withJavadocJar()
-    withSourcesJar()
+  sourceCompatibility = JavaVersion.VERSION_17
+  targetCompatibility = JavaVersion.VERSION_17
+  withJavadocJar()
+  withSourcesJar()
 }
 
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+  testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
 }
 
 test {
-    useJUnitPlatform()
+  useJUnitPlatform()
 }
 
 processResources {
-    from('LICENSE.txt') {
-        into 'META-INF'
+  from('LICENSE.txt') {
+    into 'META-INF'
+  }
+}
+
+publishing {
+  publications {
+    create("mavenJava", MavenPublication) {
+      from components.java
+
+      pom {
+        name = 'Oracle JDBC Log Analyzer'
+        description = 'A log analyzer tool that parses JDBC/UCP and RDBMS/SQLNet logs to extract errors, events, SQL queries, metrics and supports analysis and comparison.'
+        url = 'https://github.com/oracle-samples/ojdbc-log-analyzer'
+        licenses {
+          license {
+            name = 'The Universal Permissive License (UPL), Version 1.0'
+            url = 'https://oss.oracle.com/licenses/upl'
+          }
+        }
+        scm {
+          url = 'https://github.com/oracle-samples/ojdbc-log-analyzer'
+          connection = 'scm:git:git://github.com/oracle-samples/ojdbc-log-analyzer.git'
+          developerConnection = 'scm:git:ssh://github.com/oracle-samples/ojdbc-log-analyzer.git'
+        }
+        developers {
+          developer {
+            name = 'Oracle Corporation'
+            email = 'https://www.oracle.com'
+          }
+        }
+      }
     }
+  }
 }
