@@ -94,10 +94,9 @@ public class JDBCLog {
     try (final BufferedReader reader = getBufferedReader(logLocation)) {
       int lineNumber = 1;
       long positionInFile = 0;
-      while (reader.ready()) {
+      String line;
+      while ( (line = reader.readLine()) != null) {
         // a trace is never more than 1 line
-        String line = reader.readLine();
-
         Matcher matcher = TRACE_PATTERN.matcher(line);
         if (matcher.find()) {
           tracesLines.add(new LogLine(lineNumber, positionInFile));
@@ -117,9 +116,8 @@ public class JDBCLog {
     try (final BufferedReader reader = getBufferedReader(logLocation)) {
       int lineNumber = 1;
       long positionInFile = 0;
-      while (reader.ready()) {
-        String line = reader.readLine();
-
+      String line;
+      while ( (line = reader.readLine()) != null) {
         Matcher matcher = LOG_PATTERN.matcher(line);
         if (matcher.find()) {
           logLines.add(new LogLine(lineNumber, positionInFile));
@@ -186,8 +184,9 @@ public class JDBCLog {
 
     try (final BufferedReader reader = getBufferedReader(logLocation)) {
       int lineNumber = 1;
-      while (reader.ready()) {
-        Matcher matcher = EXCEPTION_PATTERN.matcher(reader.readLine());
+      String line;
+      while ( (line = reader.readLine()) != null) {
+        Matcher matcher = EXCEPTION_PATTERN.matcher(line);
         if (matcher.find()) {
           errorLines.add(lineNumber);
         }
