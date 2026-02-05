@@ -8,7 +8,6 @@
 package com.oracle.database.jdbc.logs.model;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -18,6 +17,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static com.oracle.database.jdbc.logs.analyzer.Utils.*;
 
 /**
  * A LogError is a LogEntry recognized as an error
@@ -56,14 +57,14 @@ public class LogError {
   public static final String DOCUMENTATION_LINK_TEMPLATE = "https://docs.oracle.com/en/error-help/db/%s";
 
   /**
-   * DateTimeFormatter to parse {@code MMM dd, yyyy h:mm:ss a} to {@code yyyy-MM-dd'T'HH:mm:ss}
-   * (i.e. {@code Jun 20, 2024 10:27:12 PM} to {code 2024-06-20T22:27:12}).
+   * {@link DateTimeFormatter} to parse {@code MMM dd, yyyy h:mm:ss a} to {@code yyyy-MM-dd'T'HH:mm:ss}
+   * (i.e. {@code Jun 20, 2024 10:27:12 PM} to {@code 2024-06-20T22:27:12}).
    */
   public static final DateTimeFormatter DEFAULT_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("MMM dd, yyyy h:mm:ss a");
 
   /**
-   * DateTimeFormatter to parse {@code yyyy-MM-dd'T'hh:mm:ss.SSS a Z} to {@code yyyy-MM-dd'T'HH:mm:ss.SSSZ}
-   * (i.e. {@code 2024-10-21T12:33:18.887 AM +0000} to {code 2024-10-21T00:33:18.887Z}).
+   * {@link DateTimeFormatter} to parse {@code yyyy-MM-dd'T'hh:mm:ss.SSS a Z} to {@code yyyy-MM-dd'T'HH:mm:ss.SSSZ}
+   * (i.e. {@code 2024-10-21T12:33:18.887 AM +0000} to {@code 2024-10-21T00:33:18.887Z}).
    */
   public static final DateTimeFormatter UCP_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'hh:mm:ss.SSS a Z");
 
@@ -119,7 +120,7 @@ public class LogError {
 
   /**
    * <p>
-   *   Creates an instance with the some log information related to this error.
+   *   Creates an instance with the log information related to this error.
    * </p>
    *
    * @param allLogs {@link List} corresponding {@link LogEntry}
@@ -380,8 +381,7 @@ public class LogError {
     }
 
     if (nearestTrace != null) {
-      try (FileReader fileReader = new FileReader(getLogEntry().getLogFile());
-           BufferedReader reader = new BufferedReader(fileReader)) {
+      try (BufferedReader reader = getBufferedReader(getLogEntry().getLogFile())) {
 
         reader.skip(nearestTrace.getPositionInFile());
 

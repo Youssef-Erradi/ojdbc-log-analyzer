@@ -35,7 +35,7 @@ public record JDBCExecutedQuery(String timestamp, String sql, int executionTime,
           .replace("\t", "\\t"),
         executionTime,
         connectionId == null ? "null" : "\""+connectionId+"\"",
-        tenant == null ? "null" : "\""+connectionId+"\"")
+        tenant == null ? "null" : "\""+tenant+"\"")
       .strip();
   }
 

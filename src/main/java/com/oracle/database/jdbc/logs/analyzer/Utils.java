@@ -14,7 +14,7 @@ import java.net.URL;
  * <p>
  * This class is final and cannot be instantiated.
  */
-final class Utils {
+public final class Utils {
 
   private static final String FILE_LOCATION_CANNOT_BE_NULL_OR_EMPTY = "fileLocation cannot be null or empty.";
 
@@ -30,7 +30,7 @@ final class Utils {
    * @throws IOException if an I/O error occurs opening the file or URL
    * @throws IllegalArgumentException if {@code fileLocation} is null or blank
    */
-  static BufferedReader getBufferedReader(final String fileLocation) throws IOException {
+  public static BufferedReader getBufferedReader(final String fileLocation) throws IOException {
     requireNonBlank(fileLocation, FILE_LOCATION_CANNOT_BE_NULL_OR_EMPTY);
     return new BufferedReader(getReader(fileLocation));
   }
