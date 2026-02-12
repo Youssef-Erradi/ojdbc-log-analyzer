@@ -7,7 +7,6 @@
 
 package com.oracle.database.jdbc.logs.model;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -17,8 +16,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static com.oracle.database.jdbc.logs.analyzer.Utils.*;
 
 /**
  * A LogError is a LogEntry recognized as an error
@@ -79,11 +76,6 @@ public class LogError {
   private final List<LogEntry> allLogs;
 
   /**
-   * The list of all traces in the log file
-   */
-  private final List<LogLine> allTraces;
-
-  /**
    * The logEntry (i.e. multiple consecutive log lines) where this error appears
    */
   private final LogEntry logEntry;
@@ -124,12 +116,10 @@ public class LogError {
    * </p>
    *
    * @param allLogs {@link List} corresponding {@link LogEntry}
-   * @param allTraces {@code List} corresponding {@link LogLine}
    * @param logEntry corresponding {@link LogEntry}
    */
-  public LogError(List<LogEntry> allLogs, List<LogLine> allTraces, LogEntry logEntry) {
+  public LogError(List<LogEntry> allLogs, LogEntry logEntry) {
     this.allLogs = allLogs;
-    this.allTraces = allTraces;
     this.logEntry = logEntry;
   }
 
@@ -366,37 +356,14 @@ public class LogError {
    * @throws IOException if an error occurs while reading the log file.
    */
   public JDBCTrace getNearestTrace() throws IOException {
-    JDBCTrace trace = null;
+    final String traceLine = logEntry.getLastTrace();
+    final String[] traceSegments = traceLine.split(" ");
 
-    if (allTraces == null || allTraces.isEmpty())
-      return trace;
+    final String lastExecutedMethod = traceSegments[traceSegments.length - 2] + " " + traceSegments[traceSegments.length - 1];
+    final String stringDate = traceLine.replace(lastExecutedMethod, "").strip();
+    final String formattedTimestamp = LocalDateTime.parse(stringDate, DEFAULT_TIMESTAMP_FORMATTER).toString();
 
-    LogLine nearestTrace = null;
-    for (LogLine logLine : allTraces) {
-      if (logLine.getLineNumber() < getLogEntry().getBeginLine()) {
-        nearestTrace = logLine;
-      } else {
-        break;
-      }
-    }
-
-    if (nearestTrace != null) {
-      try (BufferedReader reader = getBufferedReader(getLogEntry().getLogFile())) {
-
-        reader.skip(nearestTrace.getPositionInFile());
-
-        final String traceLine = reader.readLine();
-        final String[] traceSegments = traceLine.split(" ");
-
-        final String lastExecutedMethod = traceSegments[traceSegments.length - 2] + " " + traceSegments[traceSegments.length - 1];
-        final String stringDate = traceLine.replace(lastExecutedMethod, "").strip();
-        final String formattedTimestamp = LocalDateTime.parse(stringDate, DEFAULT_TIMESTAMP_FORMATTER).toString();
-
-        trace = new JDBCTrace(formattedTimestamp, lastExecutedMethod);
-      }
-    }
-
-    return trace;
+    return new JDBCTrace(formattedTimestamp, lastExecutedMethod);
   }
 
   /**
