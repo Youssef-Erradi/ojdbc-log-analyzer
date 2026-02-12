@@ -7,7 +7,6 @@ import com.oracle.database.jdbc.logs.model.JDBCStats;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Duration;
 
@@ -18,13 +17,13 @@ class JDBCLogTest {
   private static JDBCLog jdbcLog;
 
   @BeforeAll
-  static void setup() throws FileNotFoundException {
+  static void setup(){
     final var filepath = JDBCLogTest.class.getClassLoader().getResource("ojdbc-2.log").getPath();
     jdbcLog = new JDBCLog(filepath);
   }
 
   @Test
-  void getLogErrorsTest() throws IOException {
+  void getLogErrorsTest() {
     final var expectedErrorMessages = """
       ORA-01918: user 'TKPJSPICP01' does not exist
       ORA-01940: cannot drop a user who is currently connected
@@ -51,19 +50,20 @@ class JDBCLogTest {
   }
 
   @Test
-  void getStatsTest() throws IOException {
-    final var expectedStats = new JDBCStats("1.093 MB", 7772, "2024-06-20T21:44:31",
-      "2024-06-20T21:44:36", Duration.ofSeconds(5), 3,
-      37, "12.11 ms", 15,
-      4, 180, 263,
-      180, "159.387 kB", "155.951 kB");
+  void getStatsTest() {
+    final var expectedStats = new JDBCStats(1093201L, 7773, "2024-06-20T21:44:31",
+        "2024-06-20T21:44:36", Duration.ofSeconds(5), 3,
+        37, 12, 15,
+        4, 180, 263,
+        180, 159387, 155951);
+
     final var actualStats = jdbcLog.getStats();
 
     assertEquals(expectedStats, actualStats, "The statistics should yield the same values");
   }
 
   @Test
-  void getQueriesTest() throws IOException {
+  void getQueriesTest() {
     final var expectedQueries = """
       drop directory TEST_DIR
       drop user tkpjspicp01 cascade
@@ -114,7 +114,7 @@ class JDBCLogTest {
   }
 
   @Test
-  void getConnectionEvents() throws IOException {
+  void getConnectionEvents() {
     final var expectedConnectionEvents = """
       CONNECTION_OPENED
       CONNECTION_OPENED
@@ -151,15 +151,15 @@ class JDBCLogTest {
   }
 
   @Test
-  void compareToTest() throws IOException {
+  void compareToTest() {
     final var ojdbc1 = JDBCLogTest.class.getClassLoader().getResource("ojdbc.log").getPath();
     final var ojdbc2 = JDBCLogTest.class.getClassLoader().getResource("ojdbc-2.log").getPath();
 
     final var expectedComparisonResults = new JDBCLogComparison(
-      new JDBCLogComparison.Summary(ojdbc2,ojdbc1, "1.093 MB", "1.363 MB", 7772, 25795, "+231.90%", "2024-06-20T21:44:31 to 2024-06-20T21:44:36", Duration.ofSeconds(5), "2024-06-20T22:27:11 to 2024-06-20T22:28:14", Duration.ofSeconds(63)),
-      new JDBCLogComparison.Performance(37, 17, "-54.05%", "12.11 ms", "19.71 ms", "+62.76%"),
-      new JDBCLogComparison.Error(3, 14, "+366.67%"),
-      new JDBCLogComparison.Network("159.387 kB", "55.197 kB", "-65.37%", "155.951 kB", "3.286 MB", "+2007.07%")
+      new JDBCLogComparison.Summary(ojdbc2,ojdbc1, 1093201L, 1362671L, 7773, 25796, 231.87, "2024-06-20T21:44:31 to 2024-06-20T21:44:36", Duration.ofSeconds(5), "2024-06-20T22:27:11 to 2024-06-20T22:28:14", Duration.ofSeconds(63)),
+      new JDBCLogComparison.Performance(37, 17, -54.05, 12, 20, 66.67),
+      new JDBCLogComparison.Error(3, 10, 233.33),
+      new JDBCLogComparison.Network(159387, 55197, -65.37, 155951, 3285597, 2006.81)
     );
 
     final var actualComparisonResults = jdbcLog.compareTo(ojdbc1);
