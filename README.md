@@ -4,9 +4,9 @@ The Oracle JDBC log analyzer tool is used to parse and extract meaningful inform
 It allows clients to access, query, and analyze log data stored in a file, whether the log file is located locally on the machine or available on the web (by supplying a URL).
 
 The library support the following log formatters:
-  - [OracleSimpleFormatter](https://docs.oracle.com/en/database/oracle/oracle-database/23/jajdb/oracle/jdbc/diagnostics/OracleSimpleFormatter.html) (This is the recommended formatter, since it provides more details such as connection id and tenant).
+  - [OracleSimpleFormatter](https://docs.oracle.com/en/database/oracle/oracle-database/26/jajdb/oracle/jdbc/diagnostics/OracleSimpleFormatter.html) (This is the recommended formatter, since it provides more details such as connection id and tenant).
   - [SimpleFormatter (Default JUL formatter)](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/SimpleFormatter.html).
-  - [UCPFormatter](https://docs.oracle.com/en/database/oracle/oracle-database/23/jjuar/oracle/ucp/util/logging/UCPFormatter.html).
+  - [UCPFormatter](https://docs.oracle.com/en/database/oracle/oracle-database/26/jjuar/oracle/ucp/util/logging/UCPFormatter.html).
 
 Key Features of JDBC/UCP log parsing:
   - Error Retrieval: Access error log entries.
@@ -45,7 +45,105 @@ To build the project, use the embedded Gradle wrapper:
 
 ## Getting Started
 
-### 1. Analyzing an Oracle JDBC log file
+### 1. Enable Logging in Oracle JDBC 26ai
+
+Two things must be configured properly to enable logs in Oracle JDBC 26ai: the logger handler(s) and the system/connection properties.
+
+#### 1.a. Handler Configuration
+
+The following `ojdbc-logging.properties` configures the logger with two handlers:
+  - `java.util.logging.ConsoleHandler`: Shows all logs in the console.
+  - `java.util.logging.FileHandler`: Stores all logs in a file called `ojdbc.log`.
+
+```properties
+handlers = java.util.logging.ConsoleHandler, java.util.logging.FileHandler
+
+oracle.jdbc.level = ALL
+
+java.util.logging.ConsoleHandler.level = ALL
+java.util.logging.ConsoleHandler.formatter = oracle.jdbc.diagnostics.OracleSimpleFormatter
+
+java.util.logging.FileHandler.level = ALL
+java.util.logging.FileHandler.pattern = ojdbc.log
+java.util.logging.FileHandler.formatter = oracle.jdbc.diagnostics.OracleSimpleFormatter
+```
+
+Then the `ojdbc.log` file path must be set as a value to `java.util.logging.config.file` system property (see next section for more details).
+
+Alternatively, you can configure the `oracle.jdbc` logger handlers programmatically, the above configuration file is equivalent to the code below:
+
+```java
+final var consoleHandler = new ConsoleHandler();
+consoleHandler.setFormatter(new OracleSimpleFormatter());
+consoleHandler.setLevel(Level.ALL);
+
+final var fileHandler = new FileHandler("ojdbc.log");
+fileHandler.setLevel(Level.ALL);
+
+final var ojdbcLogger = Logger.getLogger("oracle.jdbc");
+ojdbcLogger.addHandler(consoleHandler);
+ojdbcLogger.addHandler(fileHandler);
+ojdbcLogger.setLevel(Level.ALL);
+```
+
+#### 1.b. System/Connection Properties Configuration
+
+Configuring the application to enable logs, requires setting the following properties:
+  - `java.util.logging.config.file`: System property used to specify the JUL configuration file path (i.e `-Djava.util.logging.config.file=ojdbc-logging.properties`).
+  - `oracle.jdbc.diagnostic.enableLogging`: Connection property that controls whether logging is enabled.
+  - `oracle.jdbc.diagnostic.permitSensitiveDiagnostics` (Optional): System property that controls whether the JDBC driver is _permitted_ to logs sensitive data or not.
+  - `oracle.jdbc.diagnostic.enableSensitiveDiagnostics` (Optional): Connection property that controls whether sensitive diagnostic logging is _enabled_,
+requires that `oracle.jdbc.diagnostic.permitSensitiveDiagnostics` is enabled (i.e. set to `true`), otherwise an `IllegalStateException` with code `ORA-18725` will be thrown.
+
+_Note_: System properties can be set using either `System.setProperty(String key, String value)` or `-D` flag, for example, `java <main-class-name> -Djava.util.logging.config.file=ojdbc-logging.properties`
+and `System.setProperty("java.util.logging.config.file", "ojdbc-logging.properties")` both set `ojdbc-logging.properties` value to `java.util.logging.config.file` .
+
+Here's a simple test class that enables all logs and executes a `SELECT * FROM EMPLOYEES` query on the `hr` schema:
+
+```java
+import oracle.jdbc.OracleConnection;
+
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Properties;
+
+public class OJDBCLoggingTest {
+
+  private static final String DB_URL = "jdbc:oracle:thin:hr/hr@<protocol>://<host>:<port>/<service-name>";
+
+  // this static block can be removed but the class must be run with the following flags:
+  // java OJDBCLoggingTest -Djava.util.logging.config.file=ojdbc-logging.properties -Doracle.jdbc.diagnostic.permitSensitiveDiagnostics=true
+  static {
+    System.setProperty(OracleConnection.CONNECTION_PROPERTY_PERMIT_SENSITIVE_DIAGNOSTICS, "true");
+    System.setProperty("java.util.logging.config.file", "ojdbc-logging.properties");
+  }
+
+  public static void main(String[] args) throws SQLException {
+    try (final var conn = getOracleConnection(); final var stmt = conn.createStatement()) {
+      final var rs = stmt.executeQuery("SELECT * FROM EMPLOYEES");
+      final var outputTemplate = "ID: %d, Full name: %s %s";
+      while (rs.next()) {
+        final var output = outputTemplate.formatted(rs.getInt("EMPLOYEE_ID"),
+          rs.getString("FIRST_NAME"), rs.getString("LAST_NAME"));
+        System.out.println(output);
+      }
+    }
+  }
+
+  public static OracleConnection getOracleConnection() throws SQLException {
+    final var connectionProperties = new Properties();
+    connectionProperties.put(OracleConnection.CONNECTION_PROPERTY_ENABLE_SENSITIVE_DIAGNOSTICS, "true");
+    connectionProperties.put(OracleConnection.CONNECTION_PROPERTY_ENABLE_LOGGING, "true");
+
+    return DriverManager.getConnection(DB_URL, connectionProperties)
+      .unwrap(OracleConnection.class);
+  }
+}
+```
+
+For more details regarding diagnosability in Oracle JDBC 26ai, please refer to following documentation: <https://docs.oracle.com/en/database/oracle/oracle-database/26/jjdbc/JDBC-diagnosability.html>.
+
+### 2. Analyzing an Oracle JDBC log file
 
 JDBC and UCP logs can be parsed with `com.oracle.database.jdbc.logs.analyzer.JDBCLog` class
 
@@ -112,6 +210,7 @@ public class JDBCMainClass {
 Example of the extracted information printed as JSON:
 
 - Extract Stats
+
 ```json
 {
   "fileSize": "1.363 MB",
@@ -372,7 +471,7 @@ Example of the extracted information printed as JSON:
 ]
 ```
 
-Comparison between two OJDBC log files:
+- Comparison between two OJDBC log files:
 
 ```json
 {
@@ -413,7 +512,7 @@ Comparison between two OJDBC log files:
 }
 ```
 
-### 2. Analyzing a RDBMS/SQLNet trace file
+### 3. Analyzing a RDBMS/SQLNet trace file
 
 RDBMS and SQLNet logs can be parsed with `analyzer.com.oracle.database.jdbc.logs.RDBMSLog` class
 
