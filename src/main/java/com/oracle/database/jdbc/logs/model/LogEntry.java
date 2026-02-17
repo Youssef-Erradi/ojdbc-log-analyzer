@@ -8,14 +8,11 @@
 package com.oracle.database.jdbc.logs.model;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.oracle.database.jdbc.logs.analyzer.Utils.getBufferedReader;
 
 /**
  * A LogEntry is a collection of consecutive log lines in a log file.
@@ -44,6 +41,16 @@ public class LogEntry {
   private final long beginPosition;
 
   /**
+   * The offset of the last trace line before parsing this log entry.
+   */
+  private final long lastTraceLineOffset;
+
+  /**
+   * The index of the last trace line before parsing this log entry.
+   */
+  private String lastTraceLine;
+
+  /**
    * The thread ID where this log happened.
    */
   private Integer threadId;
@@ -56,7 +63,7 @@ public class LogEntry {
   /**
    * The actual log with stacktrace.
    */
-  private String lines;              //The actual log.
+  private String lines;
 
   /**
    * RegEx to extract the thread id from the log line.
@@ -73,19 +80,81 @@ public class LogEntry {
    * @param beginPosition the beginning offset.
    */
   public LogEntry(String logFile, int beginLine, int endLine, long beginPosition) {
+    this(logFile, beginLine, endLine, beginPosition, -1);
+  }
+
+  /**
+   * <p>
+   *   Constructs a new {@code LogEntry} instance representing a collection of consecutive
+   *   log lines in a log file with specified log content.
+   * </p>
+   * <p>
+   *   The offset for the last trace line before this entry is set to {@code -1}.
+   * </p>
+   *
+   * @param logFile            the absolute or relative path of the log file in which this entry was found
+   * @param beginLine          the line number in the log file where this log entry starts (inclusive)
+   * @param endLine            the line number in the log file where this log entry ends (inclusive)
+   * @param beginPosition      the byte offset within the log file where this log entry begins
+   * @param lines              the full log text for this entry, potentially including stack traces
+   */
+  public LogEntry(String logFile, int beginLine, int endLine, long beginPosition, String lines) {
+    this(logFile, beginLine, endLine, beginPosition, -1);
+    this.lines = lines;
+  }
+
+  /**
+   * <p>
+   *   Creates a new {@code LogEntry} instance representing a collection of consecutive log lines in a log file.
+   * </p>
+   *
+   * @param logFile            the absolute or relative path of the log file in which this entry was found
+   * @param beginLine          the line number in the log file where this log entry starts (inclusive)
+   * @param endLine            the line number in the log file where this log entry ends (inclusive)
+   * @param beginPosition      the byte offset within the log file where this log entry begins
+   * @param lines              the full log text for this entry, potentially including stack traces
+   * @param lastTraceLineOffset the byte offset of the last trace line before this log entry.
+   */
+  public LogEntry(String logFile, int beginLine, int endLine, long beginPosition, String lines, long lastTraceLineOffset) {
+    this(logFile, beginLine, endLine, beginPosition, lastTraceLineOffset);
+    this.lines = lines;
+  }
+
+  /**
+   * <p>
+   *   Creates a new {@code LogEntry} instance representing a collection of consecutive log lines in a log file.
+   * </p>
+   *
+   * @param logFile            the absolute or relative path of the log file in which this entry was found
+   * @param beginLine          the line number in the log file where this log entry starts (inclusive)
+   * @param endLine            the line number in the log file where this log entry ends (inclusive)
+   * @param beginPosition      the byte offset within the log file where this log entry begins
+   * @param lines              the full log text for this entry, potentially including stack traces
+   * @param lastTraceLineOffset the byte offset of the last trace line before this log entry.
+   * @param lastTraceLine      the content of the last trace line before this entry.
+   */
+  public LogEntry(String logFile, int beginLine, int endLine, long beginPosition, String lines, long lastTraceLineOffset, String lastTraceLine) {
+    this(logFile, beginLine, endLine, beginPosition, lastTraceLineOffset);
+    this.lines = lines;
+    this.lastTraceLine = lastTraceLine;
+  }
+
+  /**
+   * <p>
+   *   Creates a log entry instance.
+   * </p>
+   * @param logFile the log file location.
+   * @param beginLine number of the beginning line
+   * @param endLine number of the end  line.
+   * @param beginPosition the beginning offset.
+   * @param lastTraceLineOffset the offset of the last trace before this log entry
+   */
+  public LogEntry(String logFile, int beginLine, int endLine, long beginPosition, long lastTraceLineOffset) {
     this.logFile = logFile;
     this.beginLine = beginLine;
     this.endLine = endLine;
     this.beginPosition = beginPosition;
-  }
-
-  private BufferedReader getBufferedReader() throws IOException {
-    if (logFile.startsWith("http://") || logFile.startsWith("https://")) {
-      URL url = new URL(logFile);
-      return new BufferedReader(new InputStreamReader(url.openStream()));
-    } else {
-      return new BufferedReader(new FileReader(logFile));
-    }
+    this.lastTraceLineOffset = lastTraceLineOffset;
   }
 
   /**
@@ -138,7 +207,7 @@ public class LogEntry {
       return lines;
 
     StringBuilder result = new StringBuilder();
-    try (final BufferedReader reader = getBufferedReader()) {
+    try (final BufferedReader reader = getBufferedReader(logFile)) {
 
       if (reader.ready())
         reader.skip(beginPosition);
@@ -168,6 +237,32 @@ public class LogEntry {
 
   /**
    * <p>
+   *   Returns the last trace line preceding this log entry from the log file.
+   * </p>
+   *
+   * @return the last trace line as a {@link String}, or {@code null} if there is no trace line offset.
+   * @throws IOException if an error occurs while reading the log file.
+   */
+  public String getLastTrace() throws IOException {
+    if (lastTraceLine != null) {
+      return lastTraceLine;
+    }
+
+    if (lastTraceLineOffset == -1)
+      return null;
+
+    try (final BufferedReader reader = getBufferedReader(logFile)) {
+      if (reader.ready())
+        reader.skip(lastTraceLineOffset);
+
+      lastTraceLine = reader.readLine();
+    }
+
+    return lastTraceLine;
+  }
+
+  /**
+   * <p>
    *   Returns the first line of this log entry.
    * </p>
    *
@@ -184,7 +279,7 @@ public class LogEntry {
       // This log is only a single line
       this.firstLine = getLines();
     } else {
-      try (final BufferedReader reader = getBufferedReader()) {
+      try (final BufferedReader reader = getBufferedReader(logFile)) {
 
         if (reader.ready())
           reader.skip(beginPosition);

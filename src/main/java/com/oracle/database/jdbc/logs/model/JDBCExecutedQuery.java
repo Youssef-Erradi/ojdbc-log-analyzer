@@ -14,7 +14,7 @@ package com.oracle.database.jdbc.logs.model;
  *
  * @param timestamp     String representation of when the query was executed.
  * @param sql           The actual SQL query as a String.
- * @param executionTime The time it took to run the query, in milliseconds.
+ * @param executionTime The time it took to run the query in milliseconds.
  * @param connectionId  The identifier of the database connection used to execute the query.
  * @param tenant        The tenant in which the query was run.
  */
@@ -29,7 +29,7 @@ public record JDBCExecutedQuery(String timestamp, String sql, int executionTime,
    */
   public String toJSONString() {
     return """
-     {"timestamp":"%s","sql":"%s","executionTime":"%sms","connectionId":%s,"tenant":%s}
+     {"timestamp":"%s","sql":"%s","executionTime":%d,"connectionId":%s,"tenant":%s}
      """.formatted(timestamp,
         sql.replace("\n", "\\n")
           .replace("\t", "\\t"),

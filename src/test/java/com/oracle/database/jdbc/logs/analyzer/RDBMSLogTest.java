@@ -16,7 +16,7 @@ class RDBMSLogTest {
 
   @BeforeAll
   static void setup() {
-    final var filepath = RDBMSLog.class.getClassLoader().getResource("rdbms.log").getPath();
+    final var filepath = JDBCLogTest.class.getClassLoader().getResource("rdbms.log").getPath();
     rdbmsLog = new RDBMSLog(filepath);
   }
 
