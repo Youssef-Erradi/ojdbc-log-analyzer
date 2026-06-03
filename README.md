@@ -4,20 +4,23 @@ The Oracle JDBC log analyzer tool is used to parse and extract meaningful inform
 It allows clients to access, query, and analyze log data stored in a file, whether the log file is located locally on the machine or available on the web (by supplying a URL).
 
 The library support the following log formatters:
-  - [OracleSimpleFormatter](https://docs.oracle.com/en/database/oracle/oracle-database/26/jajdb/oracle/jdbc/diagnostics/OracleSimpleFormatter.html) (This is the recommended formatter, since it provides more details such as connection id and tenant).
-  - [SimpleFormatter (Default JUL formatter)](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/SimpleFormatter.html).
-  - [UCPFormatter](https://docs.oracle.com/en/database/oracle/oracle-database/26/jjuar/oracle/ucp/util/logging/UCPFormatter.html).
+
+- [OracleSimpleFormatter](https://docs.oracle.com/en/database/oracle/oracle-database/26/jajdb/oracle/jdbc/diagnostics/OracleSimpleFormatter.html) (This is the recommended formatter, since it provides more details such as connection id and tenant).
+- [SimpleFormatter (Default JUL formatter)](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/SimpleFormatter.html).
+- [UCPFormatter](https://docs.oracle.com/en/database/oracle/oracle-database/26/jjuar/oracle/ucp/util/logging/UCPFormatter.html).
 
 Key Features of JDBC/UCP log parsing:
-  - Error Retrieval: Access error log entries.
-  - Insights: Generate statistics and metrics to identify trends (and maybe also anomalies).
-  - Executed Queries: Retrieve the executed SQL statements with the timestamp and the execution time.
-  - Connection Events: Retrieve the connection opened/closed events.
-  - Log Comparison: Compare two log files focusing on performance metrics, error details, and network information.
+
+- **Error Retrieval**: Access error log entries.
+- **Insights**: Generate statistics and metrics to identify trends (and maybe also anomalies).
+- **Executed Queries**: Retrieve the executed SQL statements with the timestamp and the execution time.
+- **Connection Events**: Retrieve the connection opened/closed events.
+- **Log Comparison**: Compare two log files focusing on performance metrics, error details, and network information.
 
 Key Features of RDBMS/SQLNet trace files parsing:
-  - Error Retrieval: Retrieve all the reported `ORA` errors.
-  - Extract Packet dumps: Extracts all the packet dumps that corresponds with a connection id.
+
+- **Error Retrieval**: Retrieve all the reported `ORA` errors.
+- **Extract Packet dumps**: Extracts all the packet dumps that corresponds with a connection id.
 
 ## Requirements
 
@@ -52,8 +55,9 @@ Two things must be configured properly to enable logs in Oracle JDBC 26ai: the l
 #### 1.a. Handler Configuration
 
 The following `ojdbc-logging.properties` configures the logger with two handlers:
-  - `java.util.logging.ConsoleHandler`: Shows all logs in the console.
-  - `java.util.logging.FileHandler`: Stores all logs in a file called `ojdbc.log`.
+
+- `java.util.logging.ConsoleHandler`: Shows all logs in the console.
+- `java.util.logging.FileHandler`: Stores all logs in a file called `ojdbc.log`.
 
 ```properties
 handlers = java.util.logging.ConsoleHandler, java.util.logging.FileHandler
@@ -89,11 +93,12 @@ ojdbcLogger.setLevel(Level.ALL);
 #### 1.b. System/Connection Properties Configuration
 
 Configuring the application to enable logs, requires setting the following properties:
-  - `java.util.logging.config.file`: System property used to specify the JUL configuration file path (i.e `-Djava.util.logging.config.file=ojdbc-logging.properties`).
-  - `oracle.jdbc.diagnostic.enableLogging`: Connection property that controls whether logging is enabled.
-  - `oracle.jdbc.diagnostic.permitSensitiveDiagnostics` (Optional): System property that controls whether the JDBC driver is _permitted_ to logs sensitive data or not.
-  - `oracle.jdbc.diagnostic.enableSensitiveDiagnostics` (Optional): Connection property that controls whether sensitive diagnostic logging is _enabled_,
-requires that `oracle.jdbc.diagnostic.permitSensitiveDiagnostics` is enabled (i.e. set to `true`), otherwise an `IllegalStateException` with code `ORA-18725` will be thrown.
+
+- `java.util.logging.config.file`: System property used to specify the JUL configuration file path (i.e `-Djava.util.logging.config.file=ojdbc-logging.properties`).
+- `oracle.jdbc.diagnostic.enableLogging`: Connection property that controls whether logging is enabled.
+- `oracle.jdbc.diagnostic.permitSensitiveDiagnostics` (Optional): System property that controls whether the JDBC driver is _permitted_ to logs sensitive data or not.
+- `oracle.jdbc.diagnostic.enableSensitiveDiagnostics` (Optional): Connection property that controls whether sensitive diagnostic logging is _enabled_,
+  requires that `oracle.jdbc.diagnostic.permitSensitiveDiagnostics` is enabled (i.e. set to `true`), otherwise an `IllegalStateException` with code `ORA-18725` will be thrown.
 
 _Note_: System properties can be set using either `System.setProperty(String key, String value)` or `-D` flag, for example, `java <main-class-name> -Djava.util.logging.config.file=ojdbc-logging.properties`
 and `System.setProperty("java.util.logging.config.file", "ojdbc-logging.properties")` both set `ojdbc-logging.properties` value to `java.util.logging.config.file` .
@@ -141,7 +146,7 @@ public class OJDBCLoggingTest {
 }
 ```
 
-For more details regarding diagnosability in Oracle JDBC 26ai, please refer to following documentation: <https://docs.oracle.com/en/database/oracle/oracle-database/26/jjdbc/JDBC-diagnosability.html>.
+For more details regarding diagnosability in Oracle JDBC 26ai, please refer to the following documentation: <https://docs.oracle.com/en/database/oracle/oracle-database/26/jjdbc/JDBC-diagnosability.html>.
 
 ### 2. Analyzing an Oracle JDBC log file
 
