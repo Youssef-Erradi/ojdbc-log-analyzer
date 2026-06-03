@@ -29,13 +29,12 @@ public record JDBCExecutedQuery(String timestamp, String sql, int executionTime,
    */
   public String toJSONString() {
     return """
-     {"timestamp":"%s","sql":"%s","executionTime":%d,"connectionId":%s,"tenant":%s}
-     """.formatted(timestamp,
-        sql.replace("\n", "\\n")
-          .replace("\t", "\\t"),
+     {"timestamp":%s,"sql":%s,"executionTime":%d,"connectionId":%s,"tenant":%s}
+     """.formatted(JSONUtils.escape(timestamp),
+        JSONUtils.escape(sql),
         executionTime,
-        connectionId == null ? "null" : "\""+connectionId+"\"",
-        tenant == null ? "null" : "\""+tenant+"\"")
+        JSONUtils.escape(connectionId),
+        JSONUtils.escape(tenant))
       .strip();
   }
 

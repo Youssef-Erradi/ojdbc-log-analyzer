@@ -39,8 +39,10 @@ public record JDBCConnectionEvent(String timestamp, Event event, String details)
    */
   public String toJSONString() {
     return """
-     {"timestamp": "%s","event": "%s","details": "%s"}
-     """.formatted(timestamp, event.name(), details)
+     {"timestamp":%s,"event":%s,"details":%s}
+     """.formatted(JSONUtils.escape(timestamp),
+        JSONUtils.escape(event.name()),
+        JSONUtils.escape(details))
       .strip();
   }
 

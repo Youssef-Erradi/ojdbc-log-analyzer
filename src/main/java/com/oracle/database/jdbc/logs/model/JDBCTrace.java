@@ -25,8 +25,9 @@ public record JDBCTrace(String timestamp, String executedMethod) {
    */
   public String toJSONString() {
     return """
-      {"timestamp": "%s","executedMethod": "%s"}
-      """.formatted(timestamp, executedMethod)
+      {"timestamp":%s,"executedMethod":%s}
+      """.formatted(JSONUtils.escape(timestamp),
+        JSONUtils.escape(executedMethod))
       .strip();
   }
 

@@ -29,8 +29,9 @@ public record RDBMSError(String errorMessage, String documentationLink) {
    */
   public String toJSONString() {
     return """
-    {"errorMessage":"%s","documentationLink":"%s"}
-    """.formatted(errorMessage, documentationLink)
+    {"errorMessage":%s,"documentationLink":%s}
+    """.formatted(JSONUtils.escape(errorMessage),
+        JSONUtils.escape(documentationLink))
       .strip();
   }
 }

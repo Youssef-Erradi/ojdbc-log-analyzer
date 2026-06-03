@@ -26,11 +26,8 @@ public record RDBMSPacketDump(String timestamp, String formattedPacket) {
    */
   public String toJSONString() {
     return """
-    {"timestamp":"%s","formattedPacket":"%s"}
-    """.formatted(timestamp, formattedPacket.replace("\n", "\\n")
-        .replace("\t", "\\t")
-        .replace("\\", "\\\\")
-        .replace("\"", "\\\""))
+    {"timestamp":%s,"formattedPacket":%s}
+    """.formatted(JSONUtils.escape(timestamp), JSONUtils.escape(formattedPacket))
       .strip();
   }
 }

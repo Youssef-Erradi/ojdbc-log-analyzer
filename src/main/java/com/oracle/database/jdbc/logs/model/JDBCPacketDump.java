@@ -28,12 +28,8 @@ public record JDBCPacketDump(String log, String formattedPacket) {
    */
   public String toJSONString() {
     return """
-      {"log":"%s","formattedPacket":"%s"}
-      """.formatted(log.replace("\n", "\\n").replace("\t", "\\t"),
-        formattedPacket.replace("\n", "\\n")
-          .replace("\t", "\\t")
-          .replace("\\", "\\\\")
-          .replace("\"", "\\\""))
+      {"log":%s,"formattedPacket":%s}
+      """.formatted(JSONUtils.escape(log), JSONUtils.escape(formattedPacket))
       .strip();
   }
 
