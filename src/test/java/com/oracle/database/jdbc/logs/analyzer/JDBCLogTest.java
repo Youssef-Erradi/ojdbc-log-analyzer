@@ -8,6 +8,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -17,7 +19,7 @@ class JDBCLogTest {
   private static JDBCLog jdbcLog;
 
   @BeforeAll
-  static void setup(){
+  static void setup() throws IOException {
     final var filepath = JDBCLogTest.class.getClassLoader().getResource("ojdbc-2.log").getPath();
     jdbcLog = new JDBCLog(filepath);
   }
@@ -51,10 +53,10 @@ class JDBCLogTest {
 
   @Test
   void getStatsTest() {
-    final var expectedStats = new JDBCStats(1093201L, 7773, "2024-06-20T21:44:31",
+    final var expectedStats = new JDBCStats(1093201L, 7772, "2024-06-20T21:44:31",
         "2024-06-20T21:44:36", Duration.ofSeconds(5), 3,
-        37, 12, 15,
-        4, 180, 263,
+        37, 12.108108108108109, 15,
+        4, 263,
         180, 159387, 155951);
 
     final var actualStats = jdbcLog.getStats();
@@ -151,13 +153,13 @@ class JDBCLogTest {
   }
 
   @Test
-  void compareToTest() {
+  void compareToTest() throws IOException {
     final var ojdbc1 = JDBCLogTest.class.getClassLoader().getResource("ojdbc.log").getPath();
     final var ojdbc2 = JDBCLogTest.class.getClassLoader().getResource("ojdbc-2.log").getPath();
 
     final var expectedComparisonResults = new JDBCLogComparison(
-      new JDBCLogComparison.Summary(ojdbc2,ojdbc1, 1093201L, 1362671L, 7773, 25796, 231.87, "2024-06-20T21:44:31 to 2024-06-20T21:44:36", Duration.ofSeconds(5), "2024-06-20T22:27:11 to 2024-06-20T22:28:14", Duration.ofSeconds(63)),
-      new JDBCLogComparison.Performance(37, 17, -54.05, 12, 20, 66.67),
+      new JDBCLogComparison.Summary(ojdbc2,ojdbc1, 1093201L, 1362671L, 7772, 25795, 231.9, "2024-06-20T21:44:31 to 2024-06-20T21:44:36", Duration.ofSeconds(5), "2024-06-20T22:27:11 to 2024-06-20T22:28:14", Duration.ofSeconds(63)),
+      new JDBCLogComparison.Performance(37, 17, -54.05, 12.108108108108109, 19.705882352941178, 62.75),
       new JDBCLogComparison.Error(3, 10, 233.33),
       new JDBCLogComparison.Network(159387, 55197, -65.37, 155951, 3285597, 2006.81)
     );
@@ -166,5 +168,40 @@ class JDBCLogTest {
 
     assertEquals(expectedComparisonResults, actualComparisonResults,
       "JDBCLogComparison results should be the same");
+  }
+
+  @Test
+  void deltaShouldBeZeroSafe() {
+    assertEquals(0.0, JDBCLogComparison.delta(0L, 0L),
+      "Delta should be 0.0 when both reference and compared values are zero");
+    assertNull(JDBCLogComparison.delta(0L, 1L),
+      "Delta should be null when reference value is zero and compared value is non-zero");
+  }
+
+  @Test
+  void compareToShouldNotThrowWhenBaselineMetricsAreZero() throws IOException {
+    final Path baselineLogPath = Files.createTempFile("ojdbc-baseline", ".log");
+    final Path currentLogPath = Files.createTempFile("ojdbc-current", ".log");
+
+    Files.writeString(baselineLogPath, """
+      Jun 20, 2024 1:00:00 PM oracle.jdbc.driver.T4CConnection.logon
+      INFO: U:thread-1 main baseline
+      """);
+
+    Files.writeString(currentLogPath, """
+      Jun 20, 2024 1:00:00 PM oracle.jdbc.driver.T4CConnection.logon
+      INFO: U:thread-1 main current
+      Jun 20, 2024 1:00:01 PM oracle.jdbc.driver.OracleStatement.endCurrentSql CONNECTION_ID=id,TENANT=t,SQL=select 1, sql=select 1, time=1ms
+      """);
+
+    final var comparison = assertDoesNotThrow(() -> new JDBCLog(baselineLogPath.toString()).compareTo(currentLogPath.toString()),
+      "Comparison should not throw when baseline metrics are zero");
+
+    assertNull(comparison.performance().queryCountDelta(),
+      "queryCountDelta should be null when baseline query count is zero and current query count is non-zero");
+    assertNull(comparison.performance().averageQueryTimeDelta(),
+      "averageQueryTimeDelta should be null when baseline average query time is zero and current value is non-zero");
+    assertEquals(0.0, comparison.error().totalErrorsDelta(),
+      "totalErrorsDelta should be 0.0 when both baseline and current error counts are zero");
   }
 }

@@ -13,18 +13,21 @@ import com.oracle.database.jdbc.logs.model.JDBCLogComparison;
 import com.oracle.database.jdbc.logs.model.JDBCStats;
 import com.oracle.database.jdbc.logs.model.LogEntry;
 import com.oracle.database.jdbc.logs.model.LogError;
-import com.oracle.database.jdbc.logs.model.LogParser;
+import com.oracle.database.jdbc.logs.model.LogLine;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.oracle.database.jdbc.logs.analyzer.Utils.*;
+import static com.oracle.database.jdbc.logs.analyzer.Utils.getBufferedReader;
+import static com.oracle.database.jdbc.logs.analyzer.Utils.getFileSize;
 
 /**
  * <p>
@@ -44,15 +47,221 @@ import static com.oracle.database.jdbc.logs.analyzer.Utils.*;
 public class JDBCLog {
 
   /**
+   * Traces start with a timestamp, fully qualified class name, method name. They can't be more than 1 line.
+   */
+  static final Pattern TRACE_PATTERN = Pattern.compile("^([a-zA-Z]{3}\\s\\d{1,2},\\s\\d{2,4}\\s\\d{1,2}:\\d{1,2}:\\d{1,2}\\s[A-Z]{2})\\s([a-zA-Z0-9.$]*\\s[a-zA-Z0-9.()<>]*$)");
+
+  /**
+   * Log entries start with FINEST, FINER, FINE, CONFIG, INFO, WARNING, SEVERE and finish at the next log / trace.
+   */
+  static final Pattern LOG_PATTERN = Pattern.compile("( UCP )?(FINEST|FINER|FINE|CONFIG|INFO|WARNING|SEVERE)");
+
+  /**
+   * Pattern to extract Exception with {@code ORA-}.
+   */
+  static final Pattern EXCEPTION_PATTERN = Pattern.compile("^(java|oracle).*Exception: ORA-", Pattern.MULTILINE);
+
+  /**
    * Keyword to determine if the log file is formatted by {@code UCPFormatter}.
    */
-  private static final String UCP = " UCP ";
+  static final String UCP = " UCP ";
 
-  // Boolean (not primitive type 'boolean') to know whether the field has been initialized or not.
-  private Boolean isUCPFormatted;
+  /**
+   * Pattern to extract sent payload size lines.
+   */
+  private static final Pattern WRITTEN_BYTES_PATTERN = Pattern.compile("(\\d+|\\d{1,3}(?:,\\d{3})*) bytes written to the Socket");
+  /**
+   * Pattern to extract received payload size lines.
+   */
+  private static final Pattern RECEIVED_BYTES_PATTERN = Pattern.compile("(\\d+|\\d{1,3}(?:,\\d{3})*) bytes$");
+
+  /**
+   * Pattern that marks query execution log entries.
+   */
+  private static final Pattern QUERIES_PATTERN = Pattern.compile("[\\s|.]endCurrentSql");
+  /**
+   * Pattern to split SQL text and execution time.
+   */
+  private static final Pattern SQL_AND_TIME_PATTERN = Pattern.compile("sql=([\\S\\s]*), time=(.*)", Pattern.MULTILINE);
+  /**
+   * Pattern to capture connection id and tenant from query logs.
+   */
+  private static final Pattern CONNECTION_ID_AND_TENANT_PATTERN = Pattern.compile("CONNECTION_ID=(.*),TENANT=(.*),SQL=", Pattern.MULTILINE);
+
+  /**
+   * Pattern that marks connection open events.
+   */
+  private static final Pattern OPENED_CONNECTIONS_PATTERN = Pattern.compile(" oracle.jdbc.driver.T4CConnection[. ]logon\\s.*Session Attributes:");
+  /**
+   * Pattern that marks connection close events.
+   */
+  private static final Pattern CLOSED_CONNECTIONS_PATTERN = Pattern.compile(" oracle.jdbc.driver.T4CConnection[. ]logoff$");
+  /**
+   * Signature used to detect multi-line logon records.
+   */
+  private static final String LOGON_SIGNATURE = "oracle.jdbc.driver.T4CConnection logon";
+
+  /**
+   * Pattern for default (non-UCP) timestamp prefix.
+   */
+  private static final Pattern DEFAULT_TIMESTAMP_PREFIX = Pattern.compile("^([A-Za-z]{3}\\s+\\d{1,2},\\s+\\d{2,4}\\s+\\d{1,2}:\\d{1,2}:\\d{1,2}\\s+[AP]M)\\b");
+
+  /**
+   * Source log file location.
+   */
   private final String logLocation;
-  private final LogParser parser;
-  private final CombinedCollector combinedCollector = new CombinedCollector();
+
+  /**
+   * Indicates whether parsing has already been completed.
+   */
+  private boolean parsed;
+
+  /**
+   * Parsed executed SQL queries.
+   */
+  private List<JDBCExecutedQuery> queries;
+
+  /**
+   * Parsed connection events.
+   */
+  private List<JDBCConnectionEvent> connectionEvents;
+
+  /**
+   * Parsed errors mapped to their log entries.
+   */
+  private List<LogError> logErrors;
+
+  /**
+   * Computed statistics for the parsed log file.
+   */
+  private JDBCStats stats;
+
+  /**
+   * Mutable state used only during a single parse run.
+   */
+  private static final class ParseState {
+    /**
+     * Whether the log format has been detected as UCP.
+     */
+    private Boolean isUCPFormatted;
+
+    /**
+     * Parsed log entry ranges.
+     */
+    private final List<LogEntry> logEntries = new ArrayList<>();
+    /**
+     * Parsed trace line markers.
+     */
+    private final List<LogLine> traceLines = new ArrayList<>();
+    /**
+     * Parsed query events.
+     */
+    private final List<JDBCExecutedQuery> queries = new ArrayList<>();
+    /**
+     * Parsed connection open/close events.
+     */
+    private final List<JDBCConnectionEvent> connectionEvents = new ArrayList<>();
+    /**
+     * Line numbers where matching exceptions were detected.
+     */
+    private final List<Integer> errorLines = new ArrayList<>();
+
+    /**
+     * Total number of matching errors.
+     */
+    private long errorsCount;
+    /**
+     * Number of received packet lines.
+     */
+    private long receivedPacketCount;
+    /**
+     * Number of sent packet lines.
+     */
+    private long sentPacketCount;
+    /**
+     * Total consumed bytes parsed from received packet lines.
+     */
+    private long bytesConsumed;
+    /**
+     * Total produced bytes parsed from sent packet lines.
+     */
+    private long bytesProduced;
+    /**
+     * Total number of processed lines.
+     */
+    private long linesCount;
+
+    /**
+     * Earliest default-format timestamp found.
+     */
+    private LocalDateTime localStart;
+    /**
+     * Latest default-format timestamp found.
+     */
+    private LocalDateTime localEnd;
+    /**
+     * Earliest UCP-format timestamp found.
+     */
+    private ZonedDateTime zonedStart;
+    /**
+     * Latest UCP-format timestamp found.
+     */
+    private ZonedDateTime zonedEnd;
+
+    /**
+     * Current 1-based line number while reading.
+     */
+    private int lineNumber = 1;
+    /**
+     * Current byte-like cursor position in file.
+     */
+    private long positionInFile;
+    /**
+     * Begin line of the current in-progress log entry.
+     */
+    private int currentLogBeginLine = -1;
+    /**
+     * Begin position of the current in-progress log entry.
+     */
+    private long currentLogBeginPosition = -1;
+    /**
+     * Whether a log entry is currently open.
+     */
+    private boolean inLogEntry;
+
+    /**
+     * Timestamp associated with the in-progress query block.
+     */
+    private String queryTimestamp;
+    /**
+     * Buffer for a multi-line query block.
+     */
+    private StringBuilder queryContent;
+    /**
+     * Timestamp associated with the in-progress open-connection event.
+     */
+    private String openTimestamp;
+    /**
+     * Buffer for open-connection event details.
+     */
+    private StringBuilder openDetails;
+    /**
+     * Indicates the parser is waiting for cookie detail line.
+     */
+    private boolean waitingForCookie;
+    /**
+     * Indicates the parser has seen trailing logon and still waits for cookie detail line.
+     */
+    private boolean waitingForCookieAfterLogon;
+    /**
+     * Cached pending line for multi-line logon detection.
+     */
+    private String pendingLogonLine;
+    /**
+     * Cached timestamp for deferred close-event confirmation.
+     */
+    private String pendingClosedTimestamp;
+  }
 
   /**
    * <p>
@@ -60,523 +269,423 @@ public class JDBCLog {
    * </p>
    *
    * @param logLocation URL or path to the Oracle JDBC log file.
-   * @throws IllegalArgumentException If {@code logLocation} is null or empty.
+   * @throws IOException if an error occurs while reading/parsing the log file.
    */
-  public JDBCLog(String logLocation) {
+  public JDBCLog(String logLocation) throws IOException {
     Utils.requireNonBlank(logLocation, "logLocation cannot be null or blank.");
     this.logLocation = logLocation;
+    parse();
+  }
 
-    parser = new LogParser(logLocation);
+  /**
+   * Parses the log file once and caches derived data.
+   *
+   * @throws IOException if reading the log file fails.
+   */
+  private void parse() throws IOException {
+    if (parsed)
+      return;
 
-    try {
-      parser.parse(combinedCollector);
-    } catch (IOException e) {
-      //unable to parse
-      e.printStackTrace();
+    final ParseState state = new ParseState();
+
+    try (final BufferedReader reader = getBufferedReader(logLocation)) {
+      String line;
+      while ((line = reader.readLine()) != null) {
+        final int lineLengthWithSeparator = line.length() + 1;
+        line = line.strip();
+
+        collectTraceAndLogLines(state, line);
+        collectStatsAndErrors(state, line);
+        collectQuery(state, line);
+        collectConnectionEvent(state, line);
+
+        state.positionInFile += lineLengthWithSeparator;
+        state.lineNumber++;
+      }
+    }
+
+    if (state.inLogEntry) {
+      state.logEntries.add(new LogEntry(logLocation, state.currentLogBeginLine, -1, state.currentLogBeginPosition));
+    }
+
+    if (state.queryContent != null) {
+      appendQuery(state, state.queryTimestamp, state.queryContent.toString());
+      state.queryTimestamp = null;
+      state.queryContent = null;
+    }
+
+    queries = List.copyOf(state.queries);
+    connectionEvents = List.copyOf(state.connectionEvents);
+    logErrors = List.copyOf(buildLogErrors(state));
+    stats = buildStats(state);
+    parsed = true;
+  }
+
+  /**
+   * Collects trace boundaries and builds logical log entries.
+   *
+   * @param state current parse state.
+   * @param line current stripped line.
+   */
+  private void collectTraceAndLogLines(ParseState state, String line) {
+    if (TRACE_PATTERN.matcher(line).find()) {
+      state.traceLines.add(new LogLine(state.lineNumber, state.positionInFile));
+      if (state.inLogEntry) {
+        state.logEntries.add(new LogEntry(logLocation, state.currentLogBeginLine, state.lineNumber - 1, state.currentLogBeginPosition));
+        state.inLogEntry = false;
+      }
+    }
+
+    if (LOG_PATTERN.matcher(line).find()) {
+      if (state.inLogEntry) {
+        state.logEntries.add(new LogEntry(logLocation, state.currentLogBeginLine, state.lineNumber - 1, state.currentLogBeginPosition));
+      }
+      state.currentLogBeginLine = state.lineNumber;
+      state.currentLogBeginPosition = state.positionInFile;
+      state.inLogEntry = true;
     }
   }
 
   /**
-   * <p>
-   *   Collector for log errors.
-   * </p>
+   * Updates counters, format detection, timestamps, and error markers.
+   *
+   * @param state current parse state.
+   * @param line current stripped line.
    */
-  public static class ErrorsCollector implements LogParser.LogEntryProcessor {
-    /**
-     * Pattern to extract Exception with {@code ORA-}.
-     */
-    static final Pattern EXCEPTION_PATTERN = Pattern.compile("^(java|oracle).*Exception: ORA-", Pattern.MULTILINE);
-
-    List<LogEntry> errors;
-
-    /**
-     * <p>
-     *   Constructs a new {@code ErrorsCollector} instance for collecting error entries from log data.
-     * </p>
-     */
-    public ErrorsCollector() {
-      errors = new ArrayList<>();
+  private void collectStatsAndErrors(ParseState state, String line) {
+    state.linesCount++;
+    if (state.isUCPFormatted == null) {
+      if (line.contains(UCP)) {
+        state.isUCPFormatted = true;
+      } else if (DEFAULT_TIMESTAMP_PREFIX.matcher(line).find()) {
+        state.isUCPFormatted = false;
+      }
     }
 
+    updateTimeBounds(state, line);
 
-    @Override
-    public boolean onNewLogEntry(LogEntry entry) throws IOException {
-      Matcher matcher = EXCEPTION_PATTERN.matcher(entry.getLines());
-
+    Matcher matcher = WRITTEN_BYTES_PATTERN.matcher(line);
+    if (matcher.find()) {
+      state.sentPacketCount++;
+      state.bytesProduced += Long.parseLong(matcher.group(1).replace(",", ""));
+    } else {
+      matcher = RECEIVED_BYTES_PATTERN.matcher(line);
       if (matcher.find()) {
-        errors.add(entry);
-
-        return true;
+        state.receivedPacketCount++;
+        state.bytesConsumed += Long.parseLong(matcher.group(1).replace(",", ""));
       }
-
-      return false;
     }
 
-    /**
-     * <p>
-     *   Retrieve the log entries from the log file.
-     * </p>
-     *
-     * @return {@link List} of {@link LogEntry}
-     */
-    public List<LogEntry> getErrors() {
-      return errors;
-    }
-
-    /**
-     * <p>
-     *   Retrieve the number of errors from the log file.
-     * </p>
-     *
-     * @return Error count.
-     */
-    public int getErrorsCount() {
-      return errors.size();
+    if (EXCEPTION_PATTERN.matcher(line).find()) {
+      state.errorsCount++;
+      state.errorLines.add(state.lineNumber);
     }
   }
 
   /**
-   * <p>
-   *   Collector for log statistics.
-   * </p>
+   * Parses executed SQL queries, including multi-line SQL blocks.
+   *
+   * @param state current parse state.
+   * @param line current stripped line.
    */
-  public class StatsCollector implements LogParser.LogEntryProcessor {
-    private final Pattern writtenBytesPattern;
-    private final Pattern receivedBytesPattern;
-
-    private long receivedPacketCount;
-    private long sentPacketCount;
-    private long bytesConsumed;
-    private long bytesProduced;
-    private String startTime;
-    private String endTime;
-
-    private Duration zonedDiff;
-    private Duration localDiff;
-
-    private JDBCStats stats;
-
-    /**
-     *   Constructs a new {@code StatsCollector} instance for collecting statistics from log entries.
-     * <p>
-     *   This default constructor initializes internal counters and patterns required for
-     *   parsing and aggregating statistics such as packet counts, byte counts, and time intervals
-     *   from log file entries.
-     * </p>
-     */
-    public StatsCollector() {
-      this.writtenBytesPattern = Pattern.compile("(\\d+|\\d{1,3}(?:,\\d{3})*) bytes written to the Socket", Pattern.MULTILINE);
-      this.receivedBytesPattern = Pattern.compile("(\\d+|\\d{1,3}(?:,\\d{3})*) bytes$", Pattern.MULTILINE);
-
-      this.receivedPacketCount = 0;
-      this.sentPacketCount = 0;
-      this.bytesConsumed = 0;
-      this.bytesProduced = 0;
-      this.startTime = null;
-      this.endTime = null;
-      this.zonedDiff = null;
-      this.localDiff = null;
-      this.stats = null;
+  private void collectQuery(ParseState state, String line) {
+    if (state.queryContent != null) {
+      state.queryContent.append(line);
+      if (line.contains(", time=")) {
+        appendQuery(state, state.queryTimestamp, state.queryContent.toString());
+        state.queryTimestamp = null;
+        state.queryContent = null;
+      } else {
+        state.queryContent.append("\n");
+      }
+      return;
     }
 
-    @Override
-    public boolean onNewLogEntry(LogEntry entry) throws IOException {
-      String line = entry.getLastTrace();
+    if (QUERIES_PATTERN.matcher(line).find()) {
+      state.queryTimestamp = parseTimestampForLine(state, line);
+      state.queryContent = new StringBuilder();
+      state.queryContent.append(line);
+      if (line.contains(", time=")) {
+        appendQuery(state, state.queryTimestamp, state.queryContent.toString());
+        state.queryTimestamp = null;
+        state.queryContent = null;
+      } else {
+        state.queryContent.append("\n");
+      }
+    }
+  }
 
-      if (isUCPFormatted == null)
-        isUCPFormatted = line.contains(UCP);
+  /**
+   * Parses connection opened/closed events from the current line stream.
+   *
+   * @param state current parse state.
+   * @param line current stripped line.
+   */
+  private void collectConnectionEvent(ParseState state, String line) {
+    if (state.pendingClosedTimestamp != null) {
+      if (!line.endsWith(" null")) {
+        state.connectionEvents.add(new JDBCConnectionEvent(state.pendingClosedTimestamp, JDBCConnectionEvent.Event.CONNECTION_CLOSED));
+      }
+      state.pendingClosedTimestamp = null;
+      return;
+    }
 
-      Matcher matcherHolder;
-      line = line.strip();
-
-      try {
-        if (isUCPFormatted) {
-          final var zonedDateTime = ZonedDateTime.parse(line.split(UCP)[0].strip(), LogError.UCP_TIMESTAMP_FORMATTER);
-
-          if (startTime == null || zonedDateTime.isBefore(ZonedDateTime.parse(startTime)))
-            startTime = zonedDateTime.toString();
-
-          if (endTime == null || zonedDateTime.isAfter(ZonedDateTime.parse(endTime)))
-            endTime = zonedDateTime.toString();
-
-          zonedDiff = Duration.between(ZonedDateTime.parse(startTime), ZonedDateTime.parse(endTime));
-
+    if (state.openDetails != null) {
+      if (!state.waitingForCookie && !state.waitingForCookieAfterLogon) {
+        if (!line.isBlank()) {
+          state.openDetails.append(line).append(" ");
         } else {
-          final String[] lineSegments = line.split(" ");
-          final var localDateTime = LocalDateTime.parse(
-            String.join(" ", lineSegments[0], lineSegments[1], lineSegments[2], lineSegments[3], lineSegments[4]),
-            LogError.DEFAULT_TIMESTAMP_FORMATTER);
-
-          if (startTime == null || localDateTime.isBefore(LocalDateTime.parse(startTime)))
-            startTime = localDateTime.toString();
-
-          if (endTime == null || localDateTime.isAfter(LocalDateTime.parse(endTime)))
-            endTime = localDateTime.toString();
-
-          localDiff = Duration.between(LocalDateTime.parse(startTime), LocalDateTime.parse(endTime));
+          state.openDetails.append(", ");
+          state.waitingForCookie = true;
         }
-      } catch (Exception ignored) {
-        // Line doesn't start with timestamp
+        return;
       }
 
-      line = entry.getLines();
+      if (state.waitingForCookie) {
+        if (line.endsWith("logon")) {
+          state.waitingForCookie = false;
+          state.waitingForCookieAfterLogon = true;
+          return;
+        }
+      }
 
-      matcherHolder = writtenBytesPattern.matcher(line);
-      if (matcherHolder.find()) {
-        sentPacketCount ++;
-        final String bytesString = matcherHolder.group(1).replace(",", "");
-        bytesProduced += Long.parseLong(bytesString);
-
-        return true;
+      int index = line.indexOf("cookie found?");
+      if (index >= 0) {
+        state.openDetails.append(line.substring(index));
       } else {
-
-        matcherHolder = receivedBytesPattern.matcher(line);
-        if (matcherHolder.find()) {
-          receivedPacketCount++;
-          final String bytesString = matcherHolder.group(1).replace(",", "");
-          bytesConsumed += Long.parseLong(bytesString);
-
-          return true;
-        }
+        state.openDetails.append(line);
       }
 
-      return false;
+      state.connectionEvents.add(new JDBCConnectionEvent(
+        state.openTimestamp,
+        JDBCConnectionEvent.Event.CONNECTION_OPENED,
+        state.openDetails.toString()
+      ));
+
+      state.openTimestamp = null;
+      state.openDetails = null;
+      state.waitingForCookie = false;
+      state.waitingForCookieAfterLogon = false;
+      return;
     }
 
-    /**
-     * <p>
-     *   Computes and returns JDBC statistics for the processed log file.
-     * </p>
-     *
-     * @param queries      the list of executed JDBC queries, each providing its execution time
-     * @param events       the list of JDBC connection events (e.g. connections opened/closed)
-     * @param linesCount   the total number of lines in the processed log
-     * @param errorsCount  the total number of error lines found in the log
-     *
-     * @return an instance of {@link JDBCStats} containing all computed statistics
-     */
-    public JDBCStats getStats(List<JDBCExecutedQuery> queries, List<JDBCConnectionEvent> events, long linesCount, long errorsCount) {
-      if (this.stats != null) {
-        return this.stats;
+    if (CLOSED_CONNECTIONS_PATTERN.matcher(line).find()) {
+      state.pendingClosedTimestamp = parseTimestampForLine(state, line);
+      return;
+    }
+
+    if (state.pendingLogonLine != null) {
+      String combined = state.pendingLogonLine + "\n" + line;
+      if (OPENED_CONNECTIONS_PATTERN.matcher(combined).find()) {
+        state.openTimestamp = parseTimestampForLine(state, state.pendingLogonLine);
+        state.openDetails = new StringBuilder();
+        state.pendingLogonLine = null;
+        return;
       }
+      state.pendingLogonLine = null;
+    }
 
-      final var averageQueryTime = Math.round(
-        queries.stream()
-          .mapToInt(JDBCExecutedQuery::executionTime)
-          .average()
-          .orElse(0)
-      );
+    if (line.contains(LOGON_SIGNATURE)) {
+      state.pendingLogonLine = line;
+    }
 
-      final long openedConnectionCount = events.stream()
-        .filter(jdbcConnectionEvent -> jdbcConnectionEvent.event() == JDBCConnectionEvent.Event.CONNECTION_OPENED)
-        .count();
-
-      final long closedConnectionCount = events.stream()
-        .filter(jdbcConnectionEvent -> jdbcConnectionEvent.event() == JDBCConnectionEvent.Event.CONNECTION_CLOSED)
-        .count();
-
-      stats = new JDBCStats(getFileSize(logLocation), linesCount, startTime, endTime,
-        localDiff != null ? localDiff : zonedDiff, errorsCount, queries.size(),
-        averageQueryTime,  openedConnectionCount, closedConnectionCount,
-        receivedPacketCount, sentPacketCount, receivedPacketCount, bytesConsumed, bytesProduced);
-
-      return stats;
+    if (OPENED_CONNECTIONS_PATTERN.matcher(line).find()) {
+      state.openTimestamp = parseTimestampForLine(state, line);
+      state.openDetails = new StringBuilder();
+      state.waitingForCookie = false;
+      state.waitingForCookieAfterLogon = false;
     }
   }
 
   /**
-   * <p>
-   *   Collector for executed SQL queries.
-   * </p>
+   * Maps captured error line numbers to corresponding log entries.
+   *
+   * @param state current parse state.
+   * @return parsed log errors.
    */
-  public class QueriesCollector implements LogParser.LogEntryProcessor {
+  private List<LogError> buildLogErrors(ParseState state) {
+    List<LogError> errors = new ArrayList<>();
+    int logIndex = 0;
+    List<LogEntry> logs = state.logEntries;
 
-    private final Pattern queriesPattern;
-    private final Pattern sqlAndTimePattern;
-    private final Pattern connectionIdAndTenantPattern;
-    private final List<JDBCExecutedQuery> queries;
+    for (Integer errorLine : state.errorLines) {
+      while (logIndex < logs.size()) {
+        LogEntry log = logs.get(logIndex);
+        int endLine = log.getEndLine();
 
-    /**
-     * <p>
-     *   Constructs a new {@code QueriesCollector} instance for collecting executed JDBC queries from log entries.
-     * </p>
-     */
-    public QueriesCollector() {
-      this.queriesPattern = Pattern.compile("[\\s|.]endCurrentSql");
-      this.sqlAndTimePattern = Pattern.compile("sql=([\\S\\s]*), time=(.*)", Pattern.MULTILINE);
-      this.connectionIdAndTenantPattern = Pattern.compile("CONNECTION_ID=(.*),TENANT=(.*),SQL=", Pattern.MULTILINE);
-      this.queries = new ArrayList<>();
-    }
-
-    @Override
-    public boolean onNewLogEntry(LogEntry entry) throws IOException {
-      String line = entry.getLastTrace();
-
-      if (isUCPFormatted == null)
-        isUCPFormatted = line.contains(UCP);
-
-      line = line.strip();
-      String timestamp;
-      final Matcher queryMatcher = queriesPattern.matcher(line);
-
-      if (queryMatcher.find()) {
-        if (isUCPFormatted)
-          timestamp = ZonedDateTime.parse(line.split(UCP)[0].strip(), LogError.UCP_TIMESTAMP_FORMATTER).toString();
-        else {
-          timestamp = line.replace(" oracle.jdbc.driver.ConnectionDiagnosable endCurrentSql", "").strip();
-          timestamp = LocalDateTime.parse(timestamp, LogError.DEFAULT_TIMESTAMP_FORMATTER).toString();
+        if (endLine != -1 && endLine < errorLine) {
+          logIndex++;
+          continue;
         }
 
-        String sql = null;
-        int executionTime = 0;
-        String connectionId = null;
-        String tenant = null;
-        final Matcher sqlAndTimeMatcher = sqlAndTimePattern.matcher(entry.getLines());
-        if (sqlAndTimeMatcher.find()) {
-          sql = sqlAndTimeMatcher.group(1);
-          executionTime = Integer.parseInt(
-            sqlAndTimeMatcher.group(2)
-              .replace("ms","")
-              .replace(",","")
-              .strip()
-          );
+        if (log.getBeginLine() <= errorLine) {
+          errors.add(new LogError(logs, state.traceLines, log));
         }
-
-        final Matcher connectionIdAndTenantMatcher = connectionIdAndTenantPattern.matcher(line);
-        if (connectionIdAndTenantMatcher.find()) {
-          connectionId = connectionIdAndTenantMatcher.group(1);
-          tenant = connectionIdAndTenantMatcher.group(2);
-        }
-
-        queries.add(new JDBCExecutedQuery(timestamp, sql, executionTime, connectionId, tenant));
-
-        return true;
+        break;
       }
-
-      return false;
     }
-
-    /**
-     * <p>
-     *   Returns the list of executed queries.
-     * </p>
-     *
-     * @return a {@link List} of {@link JDBCExecutedQuery}.
-     */
-    public List<JDBCExecutedQuery> getQueries() {
-      return this.queries;
-    }
+    return errors;
   }
 
   /**
-   * <p>
-   *   Collector for connection events.
-   * </p>
+   * Builds aggregated statistics from parse state.
+   *
+   * @param state current parse state.
+   * @return computed JDBC statistics.
    */
-  public class ConnectionEventsCollector implements LogParser.LogEntryProcessor {
+  private JDBCStats buildStats(ParseState state) {
+    Duration duration = null;
+    String startTime = null;
+    String endTime = null;
 
-    private final Pattern openedConnectionsTracePattern;
-    private final Pattern openedConnectionsLogPattern;
-    private final Pattern closedConnectionsTracePattern;
-    private final List<JDBCConnectionEvent> events;
-
-    /**
-     * <p>
-     *   Constructs a new {@code ConnectionEventsCollector} instance for collecting JDBC connection events from log entries.
-     * </p>
-     */
-    public ConnectionEventsCollector() {
-      this.openedConnectionsTracePattern = Pattern.compile(" oracle.jdbc.driver.T4CConnection[. ]logon$");
-      this.openedConnectionsLogPattern = Pattern.compile("\\s.*Session Attributes:");
-      this.closedConnectionsTracePattern = Pattern.compile(" oracle.jdbc.driver.T4CConnection[. ]logoff$");
-      this.events = new ArrayList<>();
+    if (state.isUCPFormatted != null && state.isUCPFormatted && state.zonedStart != null && state.zonedEnd != null) {
+      startTime = state.zonedStart.toString();
+      endTime = state.zonedEnd.toString();
+      duration = Duration.between(state.zonedStart, state.zonedEnd);
+    } else if (state.localStart != null && state.localEnd != null) {
+      startTime = state.localStart.toString();
+      endTime = state.localEnd.toString();
+      duration = Duration.between(state.localStart, state.localEnd);
     }
 
+    double averageQueryTime = state.queries.stream()
+      .mapToDouble(JDBCExecutedQuery::executionTime)
+      .average()
+      .orElse(0);
 
-    @Override
-    public boolean onNewLogEntry(LogEntry entry) throws IOException {
-      String traceLine = entry.getLastTrace();
+    long openedConnectionCount = state.connectionEvents.stream()
+      .filter(event -> event.event() == JDBCConnectionEvent.Event.CONNECTION_OPENED)
+      .count();
 
-      if (isUCPFormatted == null)
-        isUCPFormatted = traceLine.contains(UCP);
+    long closedConnectionCount = state.connectionEvents.stream()
+      .filter(event -> event.event() == JDBCConnectionEvent.Event.CONNECTION_CLOSED)
+      .count();
 
-      traceLine = traceLine.strip();
-      Matcher matcherHolder;
-      String timestamp;
+    return new JDBCStats(
+      getFileSize(logLocation),
+      state.linesCount,
+      startTime,
+      endTime,
+      duration,
+      state.errorsCount,
+      state.queries.size(),
+      averageQueryTime,
+      openedConnectionCount,
+      closedConnectionCount,
+      state.sentPacketCount,
+      state.receivedPacketCount,
+      state.bytesConsumed,
+      state.bytesProduced
+    );
+  }
 
-      matcherHolder = closedConnectionsTracePattern.matcher(traceLine);
-      if (matcherHolder.find()) {
-        final var logLine = entry.getLines().strip();
-        if (!logLine.endsWith(" null")) {
-          if (isUCPFormatted)
-            timestamp = ZonedDateTime.parse(traceLine.split(UCP)[0].strip(), LogError.UCP_TIMESTAMP_FORMATTER).toString();
-          else {
-            timestamp = traceLine.split(closedConnectionsTracePattern.pattern())[0];
-            timestamp = LocalDateTime.parse(timestamp, LogError.DEFAULT_TIMESTAMP_FORMATTER).toString();
-          }
-          events.add(new JDBCConnectionEvent(timestamp, JDBCConnectionEvent.Event.CONNECTION_CLOSED));
+  /**
+   * Expands log start/end time bounds from the current line when possible.
+   *
+   * @param state current parse state.
+   * @param line current stripped line.
+   */
+  private void updateTimeBounds(ParseState state, String line) {
+    try {
+      if (state.isUCPFormatted != null && state.isUCPFormatted) {
+        if (!line.contains(UCP)) {
+          return;
+        }
 
-          return true;
+        ZonedDateTime timestamp = ZonedDateTime.parse(line.split(UCP)[0].strip(), LogError.UCP_TIMESTAMP_FORMATTER);
+        if (state.zonedStart == null || timestamp.isBefore(state.zonedStart)) {
+          state.zonedStart = timestamp;
+        }
+
+        if (state.zonedEnd == null || timestamp.isAfter(state.zonedEnd)) {
+          state.zonedEnd = timestamp;
         }
       } else {
+        Matcher matcher = DEFAULT_TIMESTAMP_PREFIX.matcher(line);
+        if (!matcher.find()) {
+          return;
+        }
 
-        matcherHolder = openedConnectionsTracePattern.matcher(traceLine);
-        if (matcherHolder.find()) {
-          Matcher logMatcher = openedConnectionsLogPattern.matcher(entry.getLines());
-          if (logMatcher.find()) {
-            if (isUCPFormatted)
-              timestamp = ZonedDateTime.parse(traceLine.split(UCP)[0].strip(), LogError.UCP_TIMESTAMP_FORMATTER).toString();
-            else {
-              timestamp = traceLine.split(openedConnectionsTracePattern.pattern().substring(0, openedConnectionsTracePattern.pattern().length() - 1))[0];
-              timestamp = LocalDateTime.parse(timestamp, LogError.DEFAULT_TIMESTAMP_FORMATTER).toString();
-            }
+        LocalDateTime timestamp = LocalDateTime.parse(matcher.group(1), LogError.DEFAULT_TIMESTAMP_FORMATTER);
+        if (state.localStart == null || timestamp.isBefore(state.localStart)) {
+          state.localStart = timestamp;
+        }
 
-            events.add(new JDBCConnectionEvent(timestamp, JDBCConnectionEvent.Event.CONNECTION_OPENED, entry.getLines()));
-
-            return true;
-          }
+        if (state.localEnd == null || timestamp.isAfter(state.localEnd)) {
+          state.localEnd = timestamp;
         }
       }
-
-      return false;
-    }
-
-    /**
-     * <p>
-     *   Retrieve the connection events from the log file.
-     * </p>
-     *
-     * @return {@link List} of {@link JDBCConnectionEvent}
-     */
-    public List<JDBCConnectionEvent> getEvents() {
-      return this.events;
+    } catch (DateTimeParseException | ArrayIndexOutOfBoundsException ignored) {
+      // Ignore non timestamp lines
     }
   }
 
   /**
-   * <p>
-   *   Collector that combines all other collectors.
-   * </p>
+   * Extracts and normalizes a timestamp from a single line.
    *
-   * @see StatsCollector
-   * @see QueriesCollector
-   * @see ConnectionEventsCollector
+   * @param state current parse state.
+   * @param line current stripped line.
+   * @return normalized timestamp or {@code null} when not parseable.
    */
-  public class CombinedCollector implements LogParser.LogEntryProcessor {
-
-    private long linesCount;
-    private List<LogError> logErrors;
-
-    private final ErrorsCollector errorsCollector;
-    private final StatsCollector statsCollector;
-    private final QueriesCollector queriesCollector;
-    private final ConnectionEventsCollector connectionEventsCollector;
-
-    /**
-     * Constructs a new {@code CombinedCollector} instance with initialized internal collectors
-     * for errors, statistics, executed queries, and connection events.
-     * <p>
-     * This default constructor sets up a {@code CombinedCollector} so that it is ready to
-     * process and aggregate data from log entries through its associated {@link ErrorsCollector},
-     * {@link StatsCollector}, {@link QueriesCollector}, and {@link ConnectionEventsCollector} components.
-     * </p>
-     */
-    public CombinedCollector() {
-      this.errorsCollector = new ErrorsCollector();
-      this.statsCollector = new StatsCollector();
-      this.queriesCollector = new QueriesCollector();
-      this.connectionEventsCollector = new ConnectionEventsCollector();
-      this.linesCount = 0;
-      this.logErrors = null;
-    }
-
-    @Override
-    public boolean onNewLogEntry(LogEntry entry) throws IOException {
-      if (entry.getEndLine() == -1) {
-        // This is the last logEntry
-        linesCount = entry.getBeginLine() + entry.getLines().lines().count();
+  private String parseTimestampForLine(ParseState state, String line) {
+    try {
+      if (Boolean.TRUE.equals(state.isUCPFormatted) && line.contains(UCP)) {
+        return ZonedDateTime.parse(line.split(UCP)[0].strip(), LogError.UCP_TIMESTAMP_FORMATTER).toString();
       }
 
-      return ( errorsCollector.onNewLogEntry(entry)
-        || queriesCollector.onNewLogEntry(entry)
-        || connectionEventsCollector.onNewLogEntry(entry)
-        || statsCollector.onNewLogEntry(entry));
-    }
-
-    /**
-     * <p>
-     *   Returns a list of {@link LogError} objects constructed from the collected {@link LogEntry} errors.
-     * </p>
-     *
-     * @param allLogs the complete list of {@link LogEntry} instances, which will be passed to each
-     *                {@link LogError} constructor
-     * @return a list of {@link LogError} objects representing the collected error log entries
-     */
-    public List<LogError> getLogErrors(List<LogEntry> allLogs) {
-      if (this.logErrors != null) {
-        return this.logErrors;
+      Matcher matcher = DEFAULT_TIMESTAMP_PREFIX.matcher(line);
+      if (matcher.find()) {
+        return LocalDateTime.parse(matcher.group(1), LogError.DEFAULT_TIMESTAMP_FORMATTER).toString();
       }
-
-      this.logErrors = errorsCollector.getErrors()
-        .stream()
-        .map(logEntry -> new LogError(allLogs, logEntry))
-        .toList();
-
-      return this.logErrors;
+    } catch (DateTimeParseException | ArrayIndexOutOfBoundsException ignored) {
+      // best effort
     }
 
-    /**
-     * <p>
-     *   Retrieve the statistics from the log file.
-     * </p>
-     *
-     * @return {@link List} of {@link JDBCStats}
-     */
-    public JDBCStats getStats() {
-      return statsCollector.getStats(
-        queriesCollector.getQueries(),
-        connectionEventsCollector.getEvents(),
-        linesCount,
-        errorsCollector.getErrorsCount());
+    return null;
+  }
+
+  /**
+   * Parses a query block and appends it to the parsed query list.
+   *
+   * @param state current parse state.
+   * @param timestamp query timestamp.
+   * @param queryBlock raw query block content.
+   */
+  private void appendQuery(ParseState state, String timestamp, String queryBlock) {
+    String sql = null;
+    int executionTime = 0;
+    String connectionId = null;
+    String tenant = null;
+
+    Matcher sqlAndTimeMatcher = SQL_AND_TIME_PATTERN.matcher(queryBlock);
+    if (sqlAndTimeMatcher.find()) {
+      sql = sqlAndTimeMatcher.group(1);
+      try {
+        executionTime = Integer.parseInt(sqlAndTimeMatcher.group(2).replace("ms", "").strip());
+      } catch (NumberFormatException ignored) {
+        // no-op
+      }
     }
 
-    /**
-     * <p>
-     *   Retrieve the executed queries from the log file.
-     * </p>
-     *
-     * @return {@link List} of {@link JDBCExecutedQuery}
-     */
-    public List<JDBCExecutedQuery> getQueries() {
-      return queriesCollector.getQueries();
+    Matcher connectionIdAndTenantMatcher = CONNECTION_ID_AND_TENANT_PATTERN.matcher(queryBlock);
+    if (connectionIdAndTenantMatcher.find()) {
+      connectionId = connectionIdAndTenantMatcher.group(1);
+      tenant = connectionIdAndTenantMatcher.group(2);
     }
 
-    /**
-     * <p>
-     *   Returns the list of collected JDBC connection events.
-     * </p>
-     *
-     * <p>
-     *   This method delegates to {@code connectionEventsCollector.getEvents()} to retrieve
-     *   all {@link JDBCConnectionEvent} instances that have been collected so far.
-     * </p>
-     *
-     * @return a {@link List} of {@link JDBCConnectionEvent} of recorded connection events.
-     */
-    public List<JDBCConnectionEvent> getConnectionEvents() {
-      return connectionEventsCollector.getEvents();
-    }
+    state.queries.add(new JDBCExecutedQuery(timestamp, sql, executionTime, connectionId, tenant));
   }
 
   /**
    * <p>
-   *   Retrieve the log errors from the log file.
+   *   Get all the errors reported in the log file.
    * </p>
    *
-   * @return {@link List} of {@link LogError}
+   * @return List of errors
+   * @see LogError
    */
   public List<LogError> getLogErrors() {
-    return combinedCollector.getLogErrors(parser.getLogEntries());
+    return logErrors;
   }
 
   /**
@@ -587,7 +696,7 @@ public class JDBCLog {
    * @return {@link JDBCStats} object
    */
   public JDBCStats getStats() {
-    return combinedCollector.getStats();
+    return stats;
   }
 
   /**
@@ -598,7 +707,7 @@ public class JDBCLog {
    * @return {@link List} of {@link JDBCExecutedQuery}
    */
   public List<JDBCExecutedQuery> getQueries() {
-    return combinedCollector.getQueries();
+    return queries;
   }
 
   /**
@@ -609,7 +718,7 @@ public class JDBCLog {
    * @return {@link List} of {@link JDBCConnectionEvent}
    */
   public List<JDBCConnectionEvent> getConnectionEvents() {
-    return combinedCollector.getConnectionEvents();
+    return connectionEvents;
   }
 
   /**
@@ -619,42 +728,45 @@ public class JDBCLog {
    *
    * @param filepath path to the Oracle JDBC log file.
    * @return {@link JDBCLogComparison} object.
+   * @throws IOException if an error occurs while reading the log files.
    */
-  public JDBCLogComparison compareTo(final String filepath) {
+  public JDBCLogComparison compareTo(final String filepath) throws IOException {
     // this = reference
     // other =  supplied log file
     final JDBCLog other = new JDBCLog(filepath);
+    final JDBCStats thisStats = this.getStats();
+    final JDBCStats otherStats = other.getStats();
 
     var summary = new JDBCLogComparison.Summary(
       this.logLocation,
       other.logLocation,
 
-      this.getStats().fileSize(),
-      other.getStats().fileSize(),
+      thisStats.fileSize(),
+      otherStats.fileSize(),
 
-      this.getStats().lineCount(),
-      other.getStats().lineCount(),
-      JDBCLogComparison.delta(this.getStats().lineCount(), other.getStats().lineCount()),
+      thisStats.lineCount(),
+      otherStats.lineCount(),
+      JDBCLogComparison.delta(thisStats.lineCount(), otherStats.lineCount()),
 
-      this.getStats().timespan(),
-      this.getStats().duration(),
+      thisStats.timespan(),
+      thisStats.duration(),
 
-      other.getStats().timespan(),
-      other.getStats().duration()
+      otherStats.timespan(),
+      otherStats.duration()
     );
 
     var performance = new JDBCLogComparison.Performance(
-      this.getStats().queryCount(),
-      other.getStats().queryCount(),
-      JDBCLogComparison.delta(this.getStats().queryCount(), other.getStats().queryCount()),
+      thisStats.queryCount(),
+      otherStats.queryCount(),
+      JDBCLogComparison.delta(thisStats.queryCount(), otherStats.queryCount()),
 
-      this.getStats().averageQueryTime(),
-      other.getStats().averageQueryTime(),
-      JDBCLogComparison.delta(this.getStats().averageQueryTime(), other.getStats().averageQueryTime())
+      thisStats.averageQueryTime(),
+      otherStats.averageQueryTime(),
+      JDBCLogComparison.delta(thisStats.averageQueryTime(), otherStats.averageQueryTime())
     );
 
-    final var referenceErrorCount = this.getStats().errorCount();
-    final var otherErrorCount = other.getStats().errorCount();
+    final var referenceErrorCount = thisStats.errorCount();
+    final var otherErrorCount = otherStats.errorCount();
 
     var error = new JDBCLogComparison.Error(
       referenceErrorCount,
@@ -662,18 +774,18 @@ public class JDBCLog {
       JDBCLogComparison.delta(referenceErrorCount, otherErrorCount)
     );
 
-    final var referenceConsumed = this.getStats().bytesConsumed();
-    final var otherConsumed = other.getStats().bytesConsumed();
+    final var referenceConsumed = thisStats.bytesConsumed();
+    final var otherConsumed = otherStats.bytesConsumed();
 
-    final var referenceProduced = this.getStats().bytesProduced();
-    final var otherProduced = other.getStats().bytesProduced();
+    final var referenceProduced = thisStats.bytesProduced();
+    final var otherProduced = otherStats.bytesProduced();
 
     var network = new JDBCLogComparison.Network(
-      getStats().bytesConsumed(),
-      other.getStats().bytesConsumed(),
+      thisStats.bytesConsumed(),
+      otherStats.bytesConsumed(),
       JDBCLogComparison.delta(referenceConsumed, otherConsumed),
-      getStats().bytesProduced(),
-      other.getStats().bytesProduced(),
+      thisStats.bytesProduced(),
+      otherStats.bytesProduced(),
       JDBCLogComparison.delta(referenceProduced, otherProduced)
     );
 
