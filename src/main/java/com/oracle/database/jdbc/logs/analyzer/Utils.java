@@ -1,3 +1,10 @@
+/*
+ ** OJDBC Log Analyzer version 1.0.0
+ **
+ ** Copyright (c) 2025 Oracle and/or its affiliates.
+ ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl/
+ */
+
 package com.oracle.database.jdbc.logs.analyzer;
 
 import java.io.BufferedReader;
@@ -10,9 +17,17 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
- * Utility class providing I/O helper methods for file and URL handling.
+ * Utility class providing convenience methods for working with file locations
+ * represented as either local file system paths or URLs.
  * <p>
- * This class is final and cannot be instantiated.
+ * This class is non-instantiable and only exposes static helper methods for:
+ * <ul>
+ *   <li>Obtaining {@link java.io.Reader} and {@link java.io.BufferedReader} instances
+ *       from a file path or URL</li>
+ *   <li>Determining whether a string is a syntactically valid URL</li>
+ *   <li>Retrieving the size of content referenced by a file path or URL</li>
+ *   <li>Validating that strings are neither {@code null} nor blank</li>
+ * </ul>
  */
 public final class Utils {
 

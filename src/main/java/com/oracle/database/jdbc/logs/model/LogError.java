@@ -7,15 +7,19 @@
 
 package com.oracle.database.jdbc.logs.model;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static com.oracle.database.jdbc.logs.analyzer.Utils.*;
 
 /**
  * A LogError is a LogEntry recognized as an error
@@ -76,6 +80,11 @@ public class LogError {
   private final List<LogEntry> allLogs;
 
   /**
+   * The list of all traces in the log file
+   */
+  private final List<LogLine> allTraces;
+
+  /**
    * The logEntry (i.e. multiple consecutive log lines) where this error appears
    */
   private final LogEntry logEntry;
@@ -116,10 +125,12 @@ public class LogError {
    * </p>
    *
    * @param allLogs {@link List} corresponding {@link LogEntry}
+   * @param allTraces {@code List} corresponding {@link LogLine}
    * @param logEntry corresponding {@link LogEntry}
    */
-  public LogError(List<LogEntry> allLogs, LogEntry logEntry) {
+  public LogError(List<LogEntry> allLogs, List<LogLine> allTraces, LogEntry logEntry) {
     this.allLogs = allLogs;
+    this.allTraces = allTraces;
     this.logEntry = logEntry;
   }
 
@@ -356,14 +367,37 @@ public class LogError {
    * @throws IOException if an error occurs while reading the log file.
    */
   public JDBCTrace getNearestTrace() throws IOException {
-    final String traceLine = logEntry.getLastTrace();
-    final String[] traceSegments = traceLine.split(" ");
+    JDBCTrace trace = null;
 
-    final String lastExecutedMethod = traceSegments[traceSegments.length - 2] + " " + traceSegments[traceSegments.length - 1];
-    final String stringDate = traceLine.replace(lastExecutedMethod, "").strip();
-    final String formattedTimestamp = LocalDateTime.parse(stringDate, DEFAULT_TIMESTAMP_FORMATTER).toString();
+    if (allTraces == null || allTraces.isEmpty())
+      return trace;
 
-    return new JDBCTrace(formattedTimestamp, lastExecutedMethod);
+    LogLine nearestTrace = null;
+    for (LogLine logLine : allTraces) {
+      if (logLine.getLineNumber() < getLogEntry().getBeginLine()) {
+        nearestTrace = logLine;
+      } else {
+        break;
+      }
+    }
+
+    if (nearestTrace != null) {
+      try (BufferedReader reader = getBufferedReader(getLogEntry().getLogFile())) {
+
+        reader.skip(nearestTrace.getPositionInFile());
+
+        final String traceLine = reader.readLine();
+        final String[] traceSegments = traceLine.split(" ");
+
+        final String lastExecutedMethod = traceSegments[traceSegments.length - 2] + " " + traceSegments[traceSegments.length - 1];
+        final String stringDate = traceLine.replace(lastExecutedMethod, "").strip();
+        final String formattedTimestamp = LocalDateTime.parse(stringDate, DEFAULT_TIMESTAMP_FORMATTER).toString();
+
+        trace = new JDBCTrace(formattedTimestamp, lastExecutedMethod);
+      }
+    }
+
+    return trace;
   }
 
   /**
@@ -398,23 +432,20 @@ public class LogError {
   public String toJSONString() {
     try {
       return """
-        {"logEntry": %s,"sql":%s,"originalSql":%s,"errorMessage":"%s","packetDumps":%s,"tenant":%s,"logLines":"%s","documentationLink":"%s","sqlExecutionTime":%d,"nearestTrace":%s,"connectionId":%s}
+        {"logEntry": %s,"sql":%s,"originalSql":%s,"errorMessage":%s,"packetDumps":%s,"tenant":%s,"logLines":%s,"documentationLink":%s,"sqlExecutionTime":%d,"nearestTrace":%s,"connectionId":%s}
         """.formatted(logEntry.toJSONString(),
-          getSql() == null ? "null" : "\""+getSql()+"\"",
-          getOriginalSql() == null ? "null" : "\""+getOriginalSql()+"\"",
-          getErrorMessage(),
+          JSONUtils.escape(getSql()),
+          JSONUtils.escape(getOriginalSql()),
+          JSONUtils.escape(getErrorMessage()),
           getPacketDumps().stream()
             .map(JDBCPacketDump::toJSONString)
             .collect(Collectors.joining(",", "[", "]")),
-          getTenant() == null ? "null" : "\""+getTenant()+"\"",
-          getLogLines()
-            .replace("\"", "\\\"")
-            .replace("\n", "\\n")
-            .replace("\t", "\\t"),
-          getDocumentationLink(),
+          JSONUtils.escape(getTenant()),
+          JSONUtils.escape(getLogLines()),
+          JSONUtils.escape(getDocumentationLink()),
           getSQLExecutionTime(),
           getNearestTrace() == null ? "null" : getNearestTrace().toJSONString(),
-          getConnectionId() == null ? "null" : "\"" + getConnectionId() + "\"")
+          JSONUtils.escape(getConnectionId()))
         .strip();
     } catch (IOException e) {
       throw new RuntimeException("Failed to serialize to JSON", e);

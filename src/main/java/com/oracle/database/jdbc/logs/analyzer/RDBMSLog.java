@@ -72,8 +72,8 @@ public class RDBMSLog {
 
     try (BufferedReader reader = getBufferedReader(logLocation)) {
       int lineNumber = 1;
-      while (reader.ready()) {
-        String line = reader.readLine();
+      String line;
+      while ((line = reader.readLine()) != null) {
         Matcher matcher = CONNECTION_ID_PATTERN.matcher(line);
         if (matcher.find()) {
           logEntries.add(new RDBMSLogEntry(logLocation, previousLogStartLine, lineNumber - 1, previousLogPositionInFile));
@@ -118,15 +118,17 @@ public class RDBMSLog {
     final var errors = new ArrayList<RDBMSError>();
 
     try (final var bufferedReader = getBufferedReader(logLocation)) {
-      String docLinkTemplate = null;
+      String docLinkTemplate = "https://docs.oracle.com/en/error-help/db/%s";
       String dbVersion = null;
       String line;
 
       while( (line = bufferedReader.readLine()) != null) {
-        // This if block will only run once
-        if (dbVersion == null || line.startsWith("Oracle Database")) {
-          dbVersion = line.split(" ")[2];
-          docLinkTemplate = "https://docs.oracle.com/en/error-help/db/%s/?r=" + dbVersion;
+        if (dbVersion == null && line.startsWith("Oracle Database")) {
+          final String[] tokens = line.trim().split("\\s+");
+          if (tokens.length > 2) {
+            dbVersion = tokens[2];
+            docLinkTemplate = "https://docs.oracle.com/en/error-help/db/%s/?r=" + dbVersion;
+          }
           continue;
         }
 

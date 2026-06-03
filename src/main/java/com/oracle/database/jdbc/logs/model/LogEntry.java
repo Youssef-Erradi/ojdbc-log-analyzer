@@ -36,7 +36,7 @@ public class LogEntry {
   private final int endLine;
 
   /**
-   * The offset in bytes where to find this log in the file.
+   * The offset in characters where to find this log in the file.
    */
   private final long beginPosition;
 
@@ -68,7 +68,7 @@ public class LogEntry {
   /**
    * RegEx to extract the thread id from the log line.
    */
-  public static final Pattern THREAD_ID_PATTERN = Pattern.compile("^(FINEST|FINER|FINE|CONFIG|INFO|WARNING|SEVERE):\\s[A-Z]:thread-(\\d)+");
+  public static final Pattern THREAD_ID_PATTERN = Pattern.compile("^(FINEST|FINER|FINE|CONFIG|INFO|WARNING|SEVERE):\\s[A-Z]:thread-(\\d+)");
 
   /**
    * <p>
@@ -95,7 +95,7 @@ public class LogEntry {
    * @param logFile            the absolute or relative path of the log file in which this entry was found
    * @param beginLine          the line number in the log file where this log entry starts (inclusive)
    * @param endLine            the line number in the log file where this log entry ends (inclusive)
-   * @param beginPosition      the byte offset within the log file where this log entry begins
+   * @param beginPosition      the character offset within the log file where this log entry begins
    * @param lines              the full log text for this entry, potentially including stack traces
    */
   public LogEntry(String logFile, int beginLine, int endLine, long beginPosition, String lines) {
@@ -111,9 +111,9 @@ public class LogEntry {
    * @param logFile            the absolute or relative path of the log file in which this entry was found
    * @param beginLine          the line number in the log file where this log entry starts (inclusive)
    * @param endLine            the line number in the log file where this log entry ends (inclusive)
-   * @param beginPosition      the byte offset within the log file where this log entry begins
+   * @param beginPosition      the character offset within the log file where this log entry begins
    * @param lines              the full log text for this entry, potentially including stack traces
-   * @param lastTraceLineOffset the byte offset of the last trace line before this log entry.
+   * @param lastTraceLineOffset the character offset of the last trace line before this log entry.
    */
   public LogEntry(String logFile, int beginLine, int endLine, long beginPosition, String lines, long lastTraceLineOffset) {
     this(logFile, beginLine, endLine, beginPosition, lastTraceLineOffset);
@@ -128,9 +128,9 @@ public class LogEntry {
    * @param logFile            the absolute or relative path of the log file in which this entry was found
    * @param beginLine          the line number in the log file where this log entry starts (inclusive)
    * @param endLine            the line number in the log file where this log entry ends (inclusive)
-   * @param beginPosition      the byte offset within the log file where this log entry begins
+   * @param beginPosition      the character offset within the log file where this log entry begins
    * @param lines              the full log text for this entry, potentially including stack traces
-   * @param lastTraceLineOffset the byte offset of the last trace line before this log entry.
+   * @param lastTraceLineOffset the character offset of the last trace line before this log entry.
    * @param lastTraceLine      the content of the last trace line before this entry.
    */
   public LogEntry(String logFile, int beginLine, int endLine, long beginPosition, String lines, long lastTraceLineOffset, String lastTraceLine) {
@@ -209,22 +209,21 @@ public class LogEntry {
     StringBuilder result = new StringBuilder();
     try (final BufferedReader reader = getBufferedReader(logFile)) {
 
-      if (reader.ready())
-        reader.skip(beginPosition);
+      reader.skip(beginPosition);
 
       if (getEndLine() != -1) {
         // The log ends at getEndLine()
         int linesToRead = getEndLine() - getBeginLine() + 1;
+        String line;
 
-        while (reader.ready() && linesToRead > 0) {
-          String line = reader.readLine();
+        while (linesToRead > 0 && (line = reader.readLine()) != null) {
           result.append(line).append("\n");
           linesToRead--;
         }
       } else {
         // The log ends at the end of the file
-        while (reader.ready() ) {
-          String line = reader.readLine();
+        String line;
+        while ((line = reader.readLine()) != null) {
           result.append(line).append("\n");
         }
       }
@@ -252,8 +251,7 @@ public class LogEntry {
       return null;
 
     try (final BufferedReader reader = getBufferedReader(logFile)) {
-      if (reader.ready())
-        reader.skip(lastTraceLineOffset);
+      reader.skip(lastTraceLineOffset);
 
       lastTraceLine = reader.readLine();
     }
@@ -281,8 +279,7 @@ public class LogEntry {
     } else {
       try (final BufferedReader reader = getBufferedReader(logFile)) {
 
-        if (reader.ready())
-          reader.skip(beginPosition);
+        reader.skip(beginPosition);
 
         this.firstLine = reader.readLine();
       }
@@ -296,7 +293,8 @@ public class LogEntry {
    *   Returns the thread id that logged this entry.
    * </p>
    *
-   * @return the thread id reported in the log entry.
+   * @return the thread id reported in the log entry, or {@code -1} when the
+   *         thread id is missing or cannot be parsed.
    * @throws IOException if an error occurs while reading the log file.
    */
   public int getThreadId() throws IOException {
@@ -304,9 +302,22 @@ public class LogEntry {
       return this.threadId;
     }
 
-    Matcher matcher = THREAD_ID_PATTERN.matcher(getFirstLine());
-    if (matcher.find()) {
+    final String firstLine = getFirstLine();
+    if (firstLine == null) {
+      this.threadId = -1;
+      return this.threadId;
+    }
+
+    Matcher matcher = THREAD_ID_PATTERN.matcher(firstLine);
+    if (!matcher.find()) {
+      this.threadId = -1;
+      return this.threadId;
+    }
+
+    try {
       this.threadId = Integer.valueOf(matcher.group(2));
+    } catch (NumberFormatException ignored) {
+      this.threadId = -1;
     }
 
     return this.threadId;
@@ -325,8 +336,8 @@ public class LogEntry {
    */
   public String toJSONString() {
     return """
-      {"logFile": "%s","beginLine": %d,"endLine": %d}
-      """.formatted(logFile, beginLine, endLine)
+      {"logFile":%s,"beginLine":%d,"endLine":%d}
+      """.formatted(JSONUtils.escape(logFile), beginLine, endLine)
       .strip();
   }
 
