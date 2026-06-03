@@ -1,3 +1,10 @@
+/*
+ ** OJDBC Log Analyzer version 1.0.1
+ **
+ ** Copyright (c) 2026 Oracle and/or its affiliates.
+ ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl/
+ */
+
 package com.oracle.database.jdbc.logs.model;
 
 /**
@@ -6,7 +13,7 @@ package com.oracle.database.jdbc.logs.model;
  * This class is non-instantiable and exposes static conversion methods only.
  * </p>
  */
-public final class JSONUtils {
+final class JSONUtils {
   private JSONUtils() {}
 
   /**
