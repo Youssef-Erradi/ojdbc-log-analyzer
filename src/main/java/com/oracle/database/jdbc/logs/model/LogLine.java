@@ -18,7 +18,7 @@ public class LogLine {
   private final int lineNumber;
 
   /**
-   * The offset in bytes of this log line
+   * The offset in characters of this log line
    */
   private final long positionInFile;
 
@@ -28,7 +28,7 @@ public class LogLine {
    * </p>
    *
    * @param lineNumber line number
-   * @param positionInFile The offset in bytes of this log line.
+   * @param positionInFile The offset in characters of this log line.
    */
   public LogLine(int lineNumber, long positionInFile) {
     this.lineNumber = lineNumber;
@@ -51,7 +51,7 @@ public class LogLine {
    *   Returns the log line position in log file.
    * </p>
    *
-   * @return offset in bytes of this log line
+   * @return offset in characters of this log line
    */
 
   public long getPositionInFile() {
