@@ -213,84 +213,143 @@ Example of the extracted information printed as JSON:
 
 ```json
 {
-  "fileSize": "1.363 MB",
-  "lineCount": 25795,
+  "fileSize": 1362671,
+  "lineCount": 25796,
   "startTime": "2024-06-20T22:27:11",
   "endTime": "2024-06-20T22:28:14",
   "duration": "PT1M3S",
-  "errorCount": 14,
+  "errorCount": 10,
   "queryCount": 17,
-  "averageQueryTime": "19.71 ms",
+  "averageQueryTime": 20.000,
   "openedConnectionCount": 5,
   "closedConnectionCount": 4,
   "roundTripCount": 80,
   "sentPacketCount": 113,
   "receivedPacketCount": 80,
-  "bytesConsumed": "55.197 kB",
-  "bytesProduced": "3.286 MB"
+  "bytesConsumed": 55197,
+  "bytesProduced": 3285597
 }
 ```
 
 - Extract Errors:
 
 ```json
-[{
-  "logEntry": {
-    "logFile": "/Users/youssef/Desktop/logs/ojdbc17-test1.log",
-    "beginLine": 4513,
-    "endLine": 4537
+[
+  {
+    "logEntry": {
+      "logFile": "/Users/youssef/Desktop/logs/ojdbc17-test1.log",
+      "beginLine": 4513,
+      "endLine": 4537
+    },
+    "sql": "drop user tkpjb35428646 cascade",
+    "originalSql": "drop user tkpjb35428646 cascade",
+    "errorMessage": "ORA-01918: user 'TKPJB35428646' does not exist",
+    "packetDumps": [
+      {
+        "log": "FINEST: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,SSLEngineResult=[Status = OK HandshakeStatus = NOT_HANDSHAKING\nbytesConsumed = 109 bytesProduced = 138 sequenceNumber = 8]",
+        "formattedPacket": "00 00 00 6D 06 00 00 00     |...m....|\\n08 00 03 5E 04 00 02 81     |...^....|\\n21 01 02 01 01 1F 01 01     |!.......|\\n0D 00 00 00 00 04 7F FF     |........|\\nFF FF 00 00 00 00 00 00     |........|\\n00 00 00 00 00 01 00 00     |........|\\n00 00 00 00 00 00 00 00     |........|\\n00 00 00 00 00 64 72 6F     |.....dro|\\n70 20 75 73 65 72 20 74     |p.user.t|\\n6B 70 6A 62 33 35 34 32     |kpjb3542|\\n38 36 34 36 20 63 61 73     |8646.cas|\\n63 61 64 65 01 01 01 01     |cade....|\\n00 00 00 00 00 00 00 02     |........|\\n80 00 00 00 00              |.....   |"
+      },
+      {
+        "log": "FINEST: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,138 bytes written to the Socket. Packet Dump : ",
+        "formattedPacket": "17 03 03 00 85 00 00 00     |........|\\n00 00 00 00 08 15 62 90     |......b.|\\n32 E7 F2 67 E3 AA 9B E5     |2..g....|\\nFD 41 9A EE FF 69 2B 18     |.A...i+.|\\n9B 51 1B 02 75 EA 90 49     |.Q..u..I|\\n25 A0 64 59 8D 42 2B 69     |%.dY.B+i|\\nC1 30 BC 4E 21 6D A5 01     |.0.N!m..|\\nA7 68 7C 47 A7 6A C8 77     |.h|G.j.w|\\n3B 33 1D F6 01 01 26 27     |;3....&'|\\n35 DC 30 EE 1E 19 D1 C0     |5.0.....|\\nF0 DA 35 9D 23 39 11 FF     |..5.#9..|\\n5D 15 EB 97 93 FB 44 86     |].....D.|\\n38 C9 CC AB 5A 6E 27 CE     |8...Zn'.|\\n9F 85 B9 E2 56 15 EE D9     |....V...|\\n1B 43 52 74 BB 41 5D 96     |.CRt.A].|\\nB8 07 C4 64 15 94 C8 C1     |...d....|\\n6A 1E 15 F9 5F 46 78 07     |j..._Fx.|\\n23 87                       |#.      |"
+      },
+      {
+        "log": "FINEST: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,40 bytes",
+        "formattedPacket": "17 03 03 00 23 CF 01 8A     |....#...|\\nCE DD D1 B2 CA 17 62 1D     |......b.|\\n29 CA 89 D8 74 0B A9 EB     |)...t...|\\nDB C7 B5 01 A0 F2 A4 F8     |........|\\nD6 C1 7B E9 89 3B C3 B0     |..{..;..|"
+      },
+      {
+        "log": "FINEST: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,SSLEngineResult=[Status = OK HandshakeStatus = NOT_HANDSHAKING\nbytesConsumed = 40 bytesProduced = 11]",
+        "formattedPacket": "00 00 00 0B 0C 20 00 00     |........|\\n01 00 01                    |...     |"
+      },
+      {
+        "log": "FINEST: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,SSLEngineResult=[Status = OK HandshakeStatus = NOT_HANDSHAKING\nbytesConsumed = 11 bytesProduced = 40 sequenceNumber = 9]",
+        "formattedPacket": "00 00 00 0B 0C 20 00 00     |........|\\n01 00 02                    |...     |"
+      },
+      {
+        "log": "FINEST: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,40 bytes written to the Socket. Packet Dump : ",
+        "formattedPacket": "17 03 03 00 23 00 00 00     |....#...|\\n00 00 00 00 09 ED 98 F5     |........|\\nE9 AC 53 51 1B BF 9D 95     |..SQ....|\\n7B 1B 31 34 F1 4F 52 EB     |{.14.OR.|\\n45 BB 78 1B 93 ED 45 E0     |E.x...E.|"
+      },
+      {
+        "log": "FINEST: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,173 bytes",
+        "formattedPacket": "17 03 03 00 23 CF 01 8A     |....#...|\\nCE DD D1 B2 CB A6 78 66     |......xf|\\nF1 C6 1C 73 46 ED 8D 7E     |...sF..~|\\nF6 55 29 29 28 F6 E5 0B     |.U))(...|\\nEA 34 A2 FD CF 62 32 ED     |.4...b2.|\\n17 03 03 00 80 CF 01 8A     |........|\\nCE DD D1 B2 CC D1 BF 99     |........|\\n88 2C 79 06 14 03 70 F2     |.,y...p.|\\n77 29 1D 42 C0 4C 61 AE     |w).B.La.|\\n5C F9 00 B8 13 66 D9 C6     |\\....f..|\\n51 21 B9 FD 37 40 A5 C8     |Q!..7@..|\\n65 0D B9 80 1C 33 ED 1E     |e....3..|\\n51 99 D0 7F A5 F6 6D 89     |Q.....m.|\\n8D AB 52 62 37 06 43 5D     |..Rb7.C]|\\n9E 1F C3 1A 12 98 86 CA     |........|\\n7F 5E 47 D0 9D D1 32 D5     |.^G...2.|\\nB8 9F 4B 26 43 4F 6D 7C     |..K&COm||\\n51 79 68 19 85 13 22 B2     |Qyh...\".|\\nD5 2B D1 CF D2 C5 CC E5     |.+......|\\n24 80 66 42 C6 00 8A 02     |$.fB....|\\n46 14 95 42 0B C7 10 B0     |F..B....|\\n20 9B 21 75 A8              |..!u.   |"
+      },
+      {
+        "log": "FINEST: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,SSLEngineResult=[Status = OK HandshakeStatus = NOT_HANDSHAKING\nbytesConsumed = 40 bytesProduced = 11]",
+        "formattedPacket": "00 00 00 0B 0C 20 00 00     |........|\\n01 00 02                    |...     |"
+      },
+      {
+        "log": "FINEST: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,SSLEngineResult=[Status = OK HandshakeStatus = NOT_HANDSHAKING\nbytesConsumed = 133 bytesProduced = 104]",
+        "formattedPacket": "00 00 00 68 06 00 00 00     |...h....|\\n00 00 04 03 01 00 01 02     |........|\\n02 B0 00 02 07 7E 00 00     |.....~..|\\n01 02 01 0A 35 00 00 01     |...␤5...|\\n02 00 00 00 00 00 00 00     |........|\\n00 00 04 00 00 00 00 00     |........|\\n00 02 07 7E 00 01 35 00     |...~..5.|\\n2F 4F 52 41 2D 30 31 39     |/ORA-019|\\n31 38 3A 20 75 73 65 72     |18:.user|\\n20 27 54 4B 50 4A 42 33     |.'TKPJB3|\\n35 34 32 38 36 34 36 27     |5428646'|\\n20 64 6F 65 73 20 6E 6F     |.does.no|\\n74 20 65 78 69 73 74 0A     |t.exist␤|"
+      }
+    ],
+    "tenant": "CDB1_PDB1",
+    "logLines": "INFO: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,null\njava.sql.SQLSyntaxErrorException: ORA-01918: user 'TKPJB35428646' does not exist\n\n\tat oracle.jdbc.driver.T4CTTIoer11.processError(T4CTTIoer11.java:709)\n\tat oracle.jdbc.driver.T4CTTIoer11.processError(T4CTTIoer11.java:609)\n\tat oracle.jdbc.driver.T4C8Oall.processError(T4C8Oall.java:1347)\n\tat oracle.jdbc.driver.T4CTTIfun.receive(T4CTTIfun.java:1145)\n\tat oracle.jdbc.driver.T4CTTIfun.doRPC(T4CTTIfun.java:414)\n\tat oracle.jdbc.driver.T4C8Oall.doOALL(T4C8Oall.java:499)\n\tat oracle.jdbc.driver.T4CStatement.doOall8(T4CStatement.java:190)\n\tat oracle.jdbc.driver.T4CStatement.executeForRows(T4CStatement.java:1399)\n\tat oracle.jdbc.driver.OracleStatement.executeSQLStatement(OracleStatement.java:2008)\n\tat oracle.jdbc.driver.OracleStatement.doExecuteWithTimeout(OracleStatement.java:1621)\n\tat oracle.jdbc.driver.OracleStatement.executeInternal(OracleStatement.java:2687)\n\tat oracle.jdbc.driver.OracleStatement.execute(OracleStatement.java:2636)\n\tat oracle.jdbc.driver.OracleStatementWrapper.execute(OracleStatementWrapper.java:334)\n\tat sqlj.qa.harness.AppJdbcHarness.createUser(AppJdbcHarness.java:872)\n\tat sqlj.qa.harness.AppJdbcHarness.lambda$main$0(AppJdbcHarness.java:182)\n\tat java.base/java.security.AccessController.doPrivileged(AccessController.java:551)\n\tat sqlj.qa.harness.AppJdbcHarness.main(AppJdbcHarness.java:180)\nCaused by: Error : 1918, Position : 10, SQL = drop user tkpjb35428646 cascade, Original SQL = drop user tkpjb35428646 cascade, Error Message = ORA-01918: user 'TKPJB35428646' does not exist\n\n\tat oracle.jdbc.driver.T4CTTIoer11.processError(T4CTTIoer11.java:717)\n\t... 16 more\n\n",
+    "documentationLink": "https://docs.oracle.com/en/error-help/db/ORA-01918",
+    "sqlExecutionTime": 16,
+    "nearestTrace": {
+      "timestamp": "2024-06-20T22:27:12",
+      "executedMethod": "oracle.jdbc.driver.OracleStatement execute"
+    },
+    "connectionId": "0B9IF/DmROGJx/k2EsbJnw=="
   },
-  "sql": "drop user tkpjb35428646 cascade",
-  "originalSql": "drop user tkpjb35428646 cascade",
-  "errorMessage": "ORA-01918: user 'TKPJB35428646' does not exist",
-  "packetDumps": [
-    {
-      "log": "FINEST: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,SSLEngineResult=[Status = OK HandshakeStatus = NOT_HANDSHAKING\nbytesConsumed = 109 bytesProduced = 138 sequenceNumber = 8]",
-      "formattedPacket": "00 00 00 6D 06 00 00 00     |...m....|\n08 00 03 5E 04 00 02 81     |...^....|\n21 01 02 01 01 1F 01 01     |!.......|\n0D 00 00 00 00 04 7F FF     |........|\nFF FF 00 00 00 00 00 00     |........|\n00 00 00 00 00 01 00 00     |........|\n00 00 00 00 00 00 00 00     |........|\n00 00 00 00 00 64 72 6F     |.....dro|\n70 20 75 73 65 72 20 74     |p.user.t|\n6B 70 6A 62 33 35 34 32     |kpjb3542|\n38 36 34 36 20 63 61 73     |8646.cas|\n63 61 64 65 01 01 01 01     |cade....|\n00 00 00 00 00 00 00 02     |........|\n80 00 00 00 00              |.....   |"
+  {
+    "logEntry": {
+      "logFile": "/Users/youssef/Desktop/logs/ojdbc17-test1.log",
+      "beginLine": 25244,
+      "endLine": 25266
     },
-    {
-      "log": "FINEST: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,138 bytes written to the Socket. Packet Dump : ",
-      "formattedPacket": "17 03 03 00 85 00 00 00     |........|\n00 00 00 00 08 15 62 90     |......b.|\n32 E7 F2 67 E3 AA 9B E5     |2..g....|\nFD 41 9A EE FF 69 2B 18     |.A...i+.|\n9B 51 1B 02 75 EA 90 49     |.Q..u..I|\n25 A0 64 59 8D 42 2B 69     |%.dY.B+i|\nC1 30 BC 4E 21 6D A5 01     |.0.N!m..|\nA7 68 7C 47 A7 6A C8 77     |.h|G.j.w|\n3B 33 1D F6 01 01 26 27     |;3....&'|\n35 DC 30 EE 1E 19 D1 C0     |5.0.....|\nF0 DA 35 9D 23 39 11 FF     |..5.#9..|\n5D 15 EB 97 93 FB 44 86     |].....D.|\n38 C9 CC AB 5A 6E 27 CE     |8...Zn'.|\n9F 85 B9 E2 56 15 EE D9     |....V...|\n1B 43 52 74 BB 41 5D 96     |.CRt.A].|\nB8 07 C4 64 15 94 C8 C1     |...d....|\n6A 1E 15 F9 5F 46 78 07     |j..._Fx.|\n23 87                       |#.      |"
+    "sql": "drop user tkpjb35428646 cascade",
+    "originalSql": "drop user tkpjb35428646 cascade",
+    "errorMessage": "ORA-01940: cannot drop a user who is currently connected",
+    "packetDumps": [
+      {
+        "log": "FINEST: U:thread-1 main CONNECTION_ID=oRBTwv3qQPOXXuktAXpezA==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,SSLEngineResult=[Status = OK HandshakeStatus = NOT_HANDSHAKING\nbytesConsumed = 108 bytesProduced = 137 sequenceNumber = 7]",
+        "formattedPacket": "00 00 00 6C 06 00 00 00     |...l....|\\n08 00 03 5E 03 00 02 81     |...^....|\\n21 00 01 01 1F 01 01 0D     |!.......|\\n00 00 00 00 04 7F FF FF     |........|\\nFF 00 00 00 00 00 00 00     |........|\\n00 00 00 00 01 00 00 00     |........|\\n00 00 00 00 00 00 00 00     |........|\\n00 00 00 00 64 72 6F 70     |....drop|\\n20 75 73 65 72 20 74 6B     |.user.tk|\\n70 6A 62 33 35 34 32 38     |pjb35428|\\n36 34 36 20 63 61 73 63     |646.casc|\\n61 64 65 01 01 01 01 00     |ade.....|\\n00 00 00 00 00 00 02 80     |........|\\n00 00 00 00                 |....    |"
+      },
+      {
+        "log": "FINEST: U:thread-1 main CONNECTION_ID=oRBTwv3qQPOXXuktAXpezA==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,137 bytes written to the Socket. Packet Dump : ",
+        "formattedPacket": "17 03 03 00 84 00 00 00     |........|\\n00 00 00 00 07 36 18 D1     |.....6..|\\n08 C8 B8 D3 1C B1 46 84     |......F.|\\n30 15 67 48 E7 13 56 6D     |0.gH..Vm|\\nA8 F0 52 9C 39 6F 1A 1B     |..R.9o..|\\n73 E4 07 EC A5 6E D2 90     |s....n..|\\nF7 DC 5D 5E 58 90 CA B3     |..]^X...|\\n5B B6 AE 83 60 43 76 A2     |[...`Cv.|\\nCC F1 34 39 75 2F 32 5B     |..49u/2[|\\n4A 13 12 AD F6 F2 0D 7A     |J......z|\\nA5 F5 DF F5 9F D8 8A AB     |........|\\n78 18 48 1C C9 1B A5 B7     |x.H.....|\\nC9 47 68 48 EB F1 96 EF     |.GhH....|\\nD7 A0 D5 B4 CA 7E 94 B5     |.....~..|\\n9A C4 78 80 70 8D 4B 17     |..x.p.K.|\\nFA FD EF 74 7C 65 F4 E3     |...t|e..|\\n23 88 54 34 60 B3 74 F2     |#.T4`.t.|\\n29                          |)       |"
+      },
+      {
+        "log": "FINEST: U:thread-1 main CONNECTION_ID=oRBTwv3qQPOXXuktAXpezA==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,40 bytes",
+        "formattedPacket": "17 03 03 00 23 67 C4 07     |....#g..|\\n67 C2 00 CE 96 2E 67 44     |g.....gD|\\nF0 19 02 A1 26 F2 48 F7     |....&.H.|\\n9A 83 84 C7 31 AE 9B 36     |....1..6|\\n46 85 7D 75 70 C8 44 1A     |F.}up.D.|"
+      },
+      {
+        "log": "FINEST: U:thread-1 main CONNECTION_ID=oRBTwv3qQPOXXuktAXpezA==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,SSLEngineResult=[Status = OK HandshakeStatus = NOT_HANDSHAKING\nbytesConsumed = 40 bytesProduced = 11]",
+        "formattedPacket": "00 00 00 0B 0C 20 00 00     |........|\\n01 00 01                    |...     |"
+      },
+      {
+        "log": "FINEST: U:thread-1 main CONNECTION_ID=oRBTwv3qQPOXXuktAXpezA==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,SSLEngineResult=[Status = OK HandshakeStatus = NOT_HANDSHAKING\nbytesConsumed = 11 bytesProduced = 40 sequenceNumber = 8]",
+        "formattedPacket": "00 00 00 0B 0C 20 00 00     |........|\\n01 00 02                    |...     |"
+      },
+      {
+        "log": "FINEST: U:thread-1 main CONNECTION_ID=oRBTwv3qQPOXXuktAXpezA==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,40 bytes written to the Socket. Packet Dump : ",
+        "formattedPacket": "17 03 03 00 23 00 00 00     |....#...|\\n00 00 00 00 08 27 16 3E     |.....'.>|\\n85 DC 6F 36 71 C0 0E CA     |..o6q...|\\nCD 83 1D C0 29 0D FB 84     |....)...|\\n17 F3 05 F4 3F EE E2 27     |....?..'|"
+      },
+      {
+        "log": "FINEST: U:thread-1 main CONNECTION_ID=oRBTwv3qQPOXXuktAXpezA==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,180 bytes",
+        "formattedPacket": "17 03 03 00 23 67 C4 07     |....#g..|\\n67 C2 00 CE 97 1C E1 66     |g......f|\\n28 A9 9E A2 7A 0C A9 9B     |(...z...|\\nD1 C9 82 9A 32 2A EE BE     |....2*..|\\n60 6D 64 B9 B1 B6 BB 4F     |`md....O|\\n17 03 03 00 87 67 C4 07     |.....g..|\\n67 C2 00 CE 98 07 B7 CB     |g.......|\\n11 77 A7 C7 4B FE 01 CF     |.w..K...|\\nDE 39 B7 4D B8 0C 4B B9     |.9.M..K.|\\n44 F9 38 65 BF 90 29 0B     |D.8e..).|\\n05 28 50 95 AF 5C 91 84     |.(P..\\..|\\nBD 7A AB E9 5D 85 BF 01     |.z..]...|\\n86 49 C8 40 BD 83 54 F8     |.I.@..T.|\\nD7 43 4D AB 1F 00 AE 46     |.CM....F|\\n48 C5 84 BE AB C9 67 00     |H.....g.|\\nFF 59 2C 7A 18 4B 1F 71     |.Y,z.K.q|\\n10 A7 AA BC EE 19 9E 96     |........|\\nEC D9 1A ED 77 CF F7 07     |....w...|\\n91 18 AB BD F9 19 61 D5     |......a.|\\nC9 A5 B6 ED 30 39 6F C8     |....09o.|\\n38 D2 C9 A9 0C 1F A1 9B     |8.......|\\n8F E5 DD 61 25 19 5F D6     |...a%._.|\\nB2 4C 2E A2                 |.L..    |"
+      },
+      {
+        "log": "FINEST: U:thread-1 main CONNECTION_ID=oRBTwv3qQPOXXuktAXpezA==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,SSLEngineResult=[Status = OK HandshakeStatus = NOT_HANDSHAKING\nbytesConsumed = 40 bytesProduced = 11]",
+        "formattedPacket": "00 00 00 0B 0C 20 00 00     |........|\\n01 00 02                    |...     |"
+      },
+      {
+        "log": "FINEST: U:thread-1 main CONNECTION_ID=oRBTwv3qQPOXXuktAXpezA==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,SSLEngineResult=[Status = OK HandshakeStatus = NOT_HANDSHAKING\nbytesConsumed = 140 bytesProduced = 111]",
+        "formattedPacket": "00 00 00 6F 06 00 00 00     |...o....|\\n00 00 04 03 01 00 01 01     |........|\\n03 00 02 07 94 00 00 01     |........|\\n02 00 35 00 00 00 00 00     |..5.....|\\n00 00 00 00 00 00 00 03     |........|\\n00 00 00 00 00 00 02 07     |........|\\n94 00 01 35 00 39 4F 52     |...5.9OR|\\n41 2D 30 31 39 34 30 3A     |A-01940:|\\n20 63 61 6E 6E 6F 74 20     |.cannot.|\\n64 72 6F 70 20 61 20 75     |drop.a.u|\\n73 65 72 20 77 68 6F 20     |ser.who.|\\n69 73 20 63 75 72 72 65     |is.curre|\\n6E 74 6C 79 20 63 6F 6E     |ntly.con|\\n6E 65 63 74 65 64 0A        |nected␤ |"
+      }
+    ],
+    "tenant": "CDB1_PDB1",
+    "logLines": "INFO: U:thread-1 main CONNECTION_ID=oRBTwv3qQPOXXuktAXpezA==,TENANT=CDB1_PDB1,null\njava.sql.SQLSyntaxErrorException: ORA-01940: cannot drop a user who is currently connected\n\n\tat oracle.jdbc.driver.T4CTTIoer11.processError(T4CTTIoer11.java:709)\n\tat oracle.jdbc.driver.T4CTTIoer11.processError(T4CTTIoer11.java:609)\n\tat oracle.jdbc.driver.T4C8Oall.processError(T4C8Oall.java:1347)\n\tat oracle.jdbc.driver.T4CTTIfun.receive(T4CTTIfun.java:1145)\n\tat oracle.jdbc.driver.T4CTTIfun.doRPC(T4CTTIfun.java:414)\n\tat oracle.jdbc.driver.T4C8Oall.doOALL(T4C8Oall.java:499)\n\tat oracle.jdbc.driver.T4CStatement.doOall8(T4CStatement.java:190)\n\tat oracle.jdbc.driver.T4CStatement.executeForRows(T4CStatement.java:1399)\n\tat oracle.jdbc.driver.OracleStatement.executeSQLStatement(OracleStatement.java:2008)\n\tat oracle.jdbc.driver.OracleStatement.doExecuteWithTimeout(OracleStatement.java:1621)\n\tat oracle.jdbc.driver.OracleStatement.executeInternal(OracleStatement.java:2687)\n\tat oracle.jdbc.driver.OracleStatement.execute(OracleStatement.java:2636)\n\tat oracle.jdbc.driver.OracleStatementWrapper.execute(OracleStatementWrapper.java:334)\n\tat sqlj.qa.harness.AppJdbcHarness.dropUser(AppJdbcHarness.java:742)\n\tat sqlj.qa.harness.AppJdbcHarness.main(AppJdbcHarness.java:238)\nCaused by: Error : 1940, Position : 0, SQL = drop user tkpjb35428646 cascade, Original SQL = drop user tkpjb35428646 cascade, Error Message = ORA-01940: cannot drop a user who is currently connected\n\n\tat oracle.jdbc.driver.T4CTTIoer11.processError(T4CTTIoer11.java:717)\n\t... 14 more\n\n",
+    "documentationLink": "https://docs.oracle.com/en/error-help/db/ORA-01940",
+    "sqlExecutionTime": 8,
+    "nearestTrace": {
+      "timestamp": "2024-06-20T22:28:14",
+      "executedMethod": "oracle.jdbc.driver.OracleStatement execute"
     },
-    {
-      "log": "FINEST: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,40 bytes",
-      "formattedPacket": "17 03 03 00 23 CF 01 8A     |....#...|\nCE DD D1 B2 CA 17 62 1D     |......b.|\n29 CA 89 D8 74 0B A9 EB     |)...t...|\nDB C7 B5 01 A0 F2 A4 F8     |........|\nD6 C1 7B E9 89 3B C3 B0     |..{..;..|"
-    },
-    {
-      "log": "FINEST: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,SSLEngineResult=[Status = OK HandshakeStatus = NOT_HANDSHAKING\nbytesConsumed = 40 bytesProduced = 11]",
-      "formattedPacket": "00 00 00 0B 0C 20 00 00     |........|\n01 00 01                    |...     |"
-    },
-    {
-      "log": "FINEST: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,SSLEngineResult=[Status = OK HandshakeStatus = NOT_HANDSHAKING\nbytesConsumed = 11 bytesProduced = 40 sequenceNumber = 9]",
-      "formattedPacket": "00 00 00 0B 0C 20 00 00     |........|\n01 00 02                    |...     |"
-    },
-    {
-      "log": "FINEST: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,40 bytes written to the Socket. Packet Dump : ",
-      "formattedPacket": "17 03 03 00 23 00 00 00     |....#...|\n00 00 00 00 09 ED 98 F5     |........|\nE9 AC 53 51 1B BF 9D 95     |..SQ....|\n7B 1B 31 34 F1 4F 52 EB     |{.14.OR.|\n45 BB 78 1B 93 ED 45 E0     |E.x...E.|"
-    },
-    {
-      "log": "FINEST: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,173 bytes",
-      "formattedPacket": "17 03 03 00 23 CF 01 8A     |....#...|\nCE DD D1 B2 CB A6 78 66     |......xf|\nF1 C6 1C 73 46 ED 8D 7E     |...sF..~|\nF6 55 29 29 28 F6 E5 0B     |.U))(...|\nEA 34 A2 FD CF 62 32 ED     |.4...b2.|\n17 03 03 00 80 CF 01 8A     |........|\nCE DD D1 B2 CC D1 BF 99     |........|\n88 2C 79 06 14 03 70 F2     |.,y...p.|\n77 29 1D 42 C0 4C 61 AE     |w).B.La.|\n5C F9 00 B8 13 66 D9 C6     |\\....f..|\n51 21 B9 FD 37 40 A5 C8     |Q!..7@..|\n65 0D B9 80 1C 33 ED 1E     |e....3..|\n51 99 D0 7F A5 F6 6D 89     |Q.....m.|\n8D AB 52 62 37 06 43 5D     |..Rb7.C]|\n9E 1F C3 1A 12 98 86 CA     |........|\n7F 5E 47 D0 9D D1 32 D5     |.^G...2.|\nB8 9F 4B 26 43 4F 6D 7C     |..K&COm||\n51 79 68 19 85 13 22 B2     |Qyh...\".|\nD5 2B D1 CF D2 C5 CC E5     |.+......|\n24 80 66 42 C6 00 8A 02     |$.fB....|\n46 14 95 42 0B C7 10 B0     |F..B....|\n20 9B 21 75 A8              |..!u.   |"
-    },
-    {
-      "log": "FINEST: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,SSLEngineResult=[Status = OK HandshakeStatus = NOT_HANDSHAKING\nbytesConsumed = 40 bytesProduced = 11]",
-      "formattedPacket": "00 00 00 0B 0C 20 00 00     |........|\n01 00 02                    |...     |"
-    },
-    {
-      "log": "FINEST: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,SQL=drop user tkpjb35428646 cascade,SSLEngineResult=[Status = OK HandshakeStatus = NOT_HANDSHAKING\nbytesConsumed = 133 bytesProduced = 104]",
-      "formattedPacket": "00 00 00 68 06 00 00 00     |...h....|\n00 00 04 03 01 00 01 02     |........|\n02 B0 00 02 07 7E 00 00     |.....~..|\n01 02 01 0A 35 00 00 01     |...␤5...|\n02 00 00 00 00 00 00 00     |........|\n00 00 04 00 00 00 00 00     |........|\n00 02 07 7E 00 01 35 00     |...~..5.|\n2F 4F 52 41 2D 30 31 39     |/ORA-019|\n31 38 3A 20 75 73 65 72     |18:.user|\n20 27 54 4B 50 4A 42 33     |.'TKPJB3|\n35 34 32 38 36 34 36 27     |5428646'|\n20 64 6F 65 73 20 6E 6F     |.does.no|\n74 20 65 78 69 73 74 0A     |t.exist␤|"
-    }
-  ],
-  "tenant": "CDB1_PDB1",
-  "logLines": "INFO: U:thread-1 main CONNECTION_ID=0B9IF/DmROGJx/k2EsbJnw==,TENANT=CDB1_PDB1,null\njava.sql.SQLSyntaxErrorException: ORA-01918: user 'TKPJB35428646' does not exist\n\n\tat oracle.jdbc.driver.T4CTTIoer11.processError(T4CTTIoer11.java:709)\n\tat oracle.jdbc.driver.T4CTTIoer11.processError(T4CTTIoer11.java:609)\n\tat oracle.jdbc.driver.T4C8Oall.processError(T4C8Oall.java:1347)\n\tat oracle.jdbc.driver.T4CTTIfun.receive(T4CTTIfun.java:1145)\n\tat oracle.jdbc.driver.T4CTTIfun.doRPC(T4CTTIfun.java:414)\n\tat oracle.jdbc.driver.T4C8Oall.doOALL(T4C8Oall.java:499)\n\tat oracle.jdbc.driver.T4CStatement.doOall8(T4CStatement.java:190)\n\tat oracle.jdbc.driver.T4CStatement.executeForRows(T4CStatement.java:1399)\n\tat oracle.jdbc.driver.OracleStatement.executeSQLStatement(OracleStatement.java:2008)\n\tat oracle.jdbc.driver.OracleStatement.doExecuteWithTimeout(OracleStatement.java:1621)\n\tat oracle.jdbc.driver.OracleStatement.executeInternal(OracleStatement.java:2687)\n\tat oracle.jdbc.driver.OracleStatement.execute(OracleStatement.java:2636)\n\tat oracle.jdbc.driver.OracleStatementWrapper.execute(OracleStatementWrapper.java:334)\n\tat sqlj.qa.harness.AppJdbcHarness.createUser(AppJdbcHarness.java:872)\n\tat sqlj.qa.harness.AppJdbcHarness.lambda$main$0(AppJdbcHarness.java:182)\n\tat java.base/java.security.AccessController.doPrivileged(AccessController.java:551)\n\tat sqlj.qa.harness.AppJdbcHarness.main(AppJdbcHarness.java:180)\nCaused by: Error : 1918, Position : 10, SQL = drop user tkpjb35428646 cascade, Original SQL = drop user tkpjb35428646 cascade, Error Message = ORA-01918: user 'TKPJB35428646' does not exist\n\n\tat oracle.jdbc.driver.T4CTTIoer11.processError(T4CTTIoer11.java:717)\n\t... 16 more\n\n",
-  "documentationLink": "https://docs.oracle.com/en/error-help/db/ORA-01918",
-  "sqlExecutionTime": 16,
-  "nearestTrace": {
-    "timestamp": "2024-06-20T22:27:12",
-    "executedMethod": "oracle.jdbc.driver.OracleStatement execute"
-  },
-  "connectionId": "0B9IF/DmROGJx/k2EsbJnw=="
-}]
+    "connectionId": "oRBTwv3qQPOXXuktAXpezA=="
+  }
+]
 ```
 
 - Extract Executed Queries:
@@ -300,119 +359,119 @@ Example of the extracted information printed as JSON:
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "drop directory TEST_DIR",
-    "executionTime": "18ms",
+    "executionTime": 18,
     "connectionId": "0B9IF/DmROGJx/k2EsbJnw==",
     "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "drop user tkpjb35428646 cascade",
-    "executionTime": "16ms",
+    "executionTime": 16,
     "connectionId": "0B9IF/DmROGJx/k2EsbJnw==",
     "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "create user tkpjb35428646 identified by tkpjb35428646 default tablespace system quota unlimited on system",
-    "executionTime": "28ms",
+    "executionTime": 28,
     "connectionId": "0B9IF/DmROGJx/k2EsbJnw==",
     "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "grant connect, resource, unlimited tablespace,ALTER SESSION to tkpjb35428646",
-    "executionTime": "9ms",
+    "executionTime": 9,
     "connectionId": "0B9IF/DmROGJx/k2EsbJnw==",
     "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "grant create view, create session, create synonym,create type, create sequence, CREATE TABLE,create procedure, select any table to tkpjb35428646",
-    "executionTime": "9ms",
+    "executionTime": 9,
     "connectionId": "0B9IF/DmROGJx/k2EsbJnw==",
     "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "grant create database link to tkpjb35428646",
-    "executionTime": "7ms",
+    "executionTime": 7,
     "connectionId": "0B9IF/DmROGJx/k2EsbJnw==",
     "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "grant CREATE CLUSTER, CREATE OPERATOR, CREATE TRIGGER, CREATE INDEXTYPE to tkpjb35428646",
-    "executionTime": "8ms",
+    "executionTime": 8,
     "connectionId": "0B9IF/DmROGJx/k2EsbJnw==",
     "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "grant create any directory,drop any directory to tkpjb35428646",
-    "executionTime": "8ms",
+    "executionTime": 8,
     "connectionId": "0B9IF/DmROGJx/k2EsbJnw==",
     "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "grant select on emp to public",
-    "executionTime": "10ms",
+    "executionTime": 10,
     "connectionId": "LuEy0UraR/CzZiaKrnoFJA==",
     "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "grant select on dept to public",
-    "executionTime": "7ms",
+    "executionTime": 7,
     "connectionId": "LuEy0UraR/CzZiaKrnoFJA==",
     "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "sql": "create directory TEST_DIR as '/ade/b/1465033565/oracle/work'",
-    "executionTime": "10ms",
+    "executionTime": 10,
     "connectionId": "akfhcI14TCqfOnUNs3XMww==",
     "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:13",
     "sql": "ALTER SESSION SET TIME_ZONE = 'PST8PDT'",
-    "executionTime": "2ms",
+    "executionTime": 2,
     "connectionId": "Ou7tTDJKTaqGwfDVqVR5Rw==",
     "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:27:13",
     "sql": "SELECT DBTIMEZONE FROM DUAL",
-    "executionTime": "112ms",
+    "executionTime": 112,
     "connectionId": "Ou7tTDJKTaqGwfDVqVR5Rw==",
     "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:28:14",
     "sql": "drop user tkpjb35428646 cascade",
-    "executionTime": "8ms",
+    "executionTime": 8,
     "connectionId": "oRBTwv3qQPOXXuktAXpezA==",
     "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:28:14",
     "sql": "select sid,serial# from v$session where username='TKPJB35428646'",
-    "executionTime": "15ms",
+    "executionTime": 15,
     "connectionId": "oRBTwv3qQPOXXuktAXpezA==",
     "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:28:14",
     "sql": "alter system kill session '279,43180' immediate",
-    "executionTime": "10ms",
+    "executionTime": 10,
     "connectionId": "oRBTwv3qQPOXXuktAXpezA==",
     "tenant": "CDB1_PDB1"
   },
   {
     "timestamp": "2024-06-20T22:28:14",
     "sql": "drop user tkpjb35428646 cascade",
-    "executionTime": "58ms",
+    "executionTime": 58,
     "connectionId": "oRBTwv3qQPOXXuktAXpezA==",
     "tenant": "CDB1_PDB1"
   }
@@ -426,47 +485,47 @@ Example of the extracted information printed as JSON:
   {
     "timestamp": "2024-06-20T22:27:11",
     "event": "CONNECTION_OPENED",
-    "details": "sdu=8192, tdu=2097152 nt: host=phxdbfdf83, port=3484, socketOptions={0=YES, 1=NO, 2=0, 6=1.2, 38=TLS, 40=false, 8=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 9=SSO, 11=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 12=SSO, 46=1, 17=0, 18=false, 20=true, 23=40, 24=50, 25=0}     socket=Socket[addr=phxdbfdf83/100.94.241.218,port=3484,localport=50382] client profile={oracle.net.encryption_types_client=(), oracle.net.crypto_seed=, oracle.net.authentication_services=(), oracle.net.setFIPSMode=false, oracle.net.kerberos5_mutual_authentication=false, oracle.net.encryption_client=ACCEPTED, oracle.net.crypto_checksum_client=ACCEPTED, oracle.net.crypto_checksum_types_client=()} connection options=[host=phxdbfdf83 port=3484 protocol=tcps service_name=cdb1_pdb1.regress.rdbms.dev.us.oracle.com addr=(ADDRESS=(PROTOCOL=tcps)(HOST=phxdbfdf83)(PORT=3484)) conn_data=(DESCRIPTION=(ADDRESS=(PROTOCOL=tcps)(PORT=3484)(HOST=100.94.241.218)(HOSTNAME=phxdbfdf83))(CONNECT_DATA=(CID=(PROGRAM=AppJdbcHarness)(HOST=phxdbfdf83)(USER=aime1))(SERVICE_NAME=cdb1_pdb1.regress.rdbms.dev.us.oracle.com))) done=true] onBreakReset=false, dataEOF=false, negotiatedOptions=0xc01, connected=true TTIINIT enabled=true, TTC cookie enabled=true , cookie found? no"
+    "details": "FINER: I:thread-1 main session attributes Session Attributes: \nsdu=8192, tdu=2097152\nnt: host=phxdbfdf83, port=3484, socketOptions={0=YES, 1=NO, 2=0, 6=1.2, 38=TLS, 40=false, 8=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 9=SSO, 11=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 12=SSO, 46=1, 17=0, 18=false, 20=true, 23=40, 24=50, 25=0}\n    socket=Socket[addr=phxdbfdf83/100.94.241.218,port=3484,localport=50382]\nclient profile={oracle.net.encryption_types_client=(), oracle.net.crypto_seed=, oracle.net.authentication_services=(), oracle.net.setFIPSMode=false, oracle.net.kerberos5_mutual_authentication=false, oracle.net.encryption_client=ACCEPTED, oracle.net.crypto_checksum_client=ACCEPTED, oracle.net.crypto_checksum_types_client=()}\nconnection options=[host=phxdbfdf83 port=3484 protocol=tcps service_name=cdb1_pdb1.regress.rdbms.dev.us.oracle.com addr=(ADDRESS=(PROTOCOL=tcps)(HOST=phxdbfdf83)(PORT=3484)) conn_data=(DESCRIPTION=(ADDRESS=(PROTOCOL=tcps)(PORT=3484)(HOST=100.94.241.218)(HOSTNAME=phxdbfdf83))(CONNECT_DATA=(CID=(PROGRAM=AppJdbcHarness)(HOST=phxdbfdf83)(USER=aime1))(SERVICE_NAME=cdb1_pdb1.regress.rdbms.dev.us.oracle.com))) done=true]\nonBreakReset=false, dataEOF=false, negotiatedOptions=0xc01, connected=true\nTTIINIT enabled=true, TTC cookie enabled=true\n\n"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "event": "CONNECTION_OPENED",
-    "details": "sdu=8192, tdu=2097152 nt: host=phxdbfdf83, port=3484, socketOptions={0=YES, 1=NO, 2=0, 6=1.2, 38=TLS, 40=false, 8=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 9=SSO, 11=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 12=SSO, 46=1, 17=0, 18=false, 20=true, 23=40, 24=50, 25=0}     socket=Socket[addr=phxdbfdf83/100.94.241.218,port=3484,localport=50150] client profile={oracle.net.encryption_types_client=(), oracle.net.crypto_seed=, oracle.net.authentication_services=(), oracle.net.setFIPSMode=false, oracle.net.kerberos5_mutual_authentication=false, oracle.net.encryption_client=ACCEPTED, oracle.net.crypto_checksum_client=ACCEPTED, oracle.net.crypto_checksum_types_client=()} connection options=[host=phxdbfdf83 port=3484 protocol=tcps service_name=cdb1_pdb1.regress.rdbms.dev.us.oracle.com addr=(ADDRESS=(PROTOCOL=tcps)(HOST=phxdbfdf83)(PORT=3484)) conn_data=(DESCRIPTION=(ADDRESS=(PROTOCOL=tcps)(PORT=3484)(HOST=100.94.241.218)(HOSTNAME=phxdbfdf83))(CONNECT_DATA=(CID=(PROGRAM=AppJdbcHarness)(HOST=phxdbfdf83)(USER=aime1))(SERVICE_NAME=cdb1_pdb1.regress.rdbms.dev.us.oracle.com))) done=true] onBreakReset=false, dataEOF=false, negotiatedOptions=0xc01, connected=true TTIINIT enabled=true, TTC cookie enabled=true , cookie found? T4CTTICookie{version=1, connectionProtocolVersion=6, databaseCharSet=873, databaseCharSetFlag=33, databaseNCharSet=2000, databaseRuntimeCapabilities=[2, 1, 0, 1, 24, 0, 127, 1, 0, 0, 0, 0], databaseCompileTimeCapabilities=[6, 1, 1, 1, -17, 15, 1, 37, 1, 1, 1, 1, 1, 1, 1, 127, -1, 3, 16, 3, 3, 1, 1, -1, 1, -1, -1, 1, 12, 1, 1, -1, 1, 6, 12, -10, 9, 127, 5, 15, -1, 13, 11, 0, 63, 0, 0, 0, 0, 0, 0, 2, 1], databasePortage=[120, 56, 54, 95, 54, 52, 47, 76, 105, 110, 117, 120, 32, 50, 46, 52, 46, 120, 120]}"
+    "details": "FINER: I:thread-1 main session attributes Session Attributes: \nsdu=8192, tdu=2097152\nnt: host=phxdbfdf83, port=3484, socketOptions={0=YES, 1=NO, 2=0, 6=1.2, 38=TLS, 40=false, 8=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 9=SSO, 11=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 12=SSO, 46=1, 17=0, 18=false, 20=true, 23=40, 24=50, 25=0}\n    socket=Socket[addr=phxdbfdf83/100.94.241.218,port=3484,localport=50150]\nclient profile={oracle.net.encryption_types_client=(), oracle.net.crypto_seed=, oracle.net.authentication_services=(), oracle.net.setFIPSMode=false, oracle.net.kerberos5_mutual_authentication=false, oracle.net.encryption_client=ACCEPTED, oracle.net.crypto_checksum_client=ACCEPTED, oracle.net.crypto_checksum_types_client=()}\nconnection options=[host=phxdbfdf83 port=3484 protocol=tcps service_name=cdb1_pdb1.regress.rdbms.dev.us.oracle.com addr=(ADDRESS=(PROTOCOL=tcps)(HOST=phxdbfdf83)(PORT=3484)) conn_data=(DESCRIPTION=(ADDRESS=(PROTOCOL=tcps)(PORT=3484)(HOST=100.94.241.218)(HOSTNAME=phxdbfdf83))(CONNECT_DATA=(CID=(PROGRAM=AppJdbcHarness)(HOST=phxdbfdf83)(USER=aime1))(SERVICE_NAME=cdb1_pdb1.regress.rdbms.dev.us.oracle.com))) done=true]\nonBreakReset=false, dataEOF=false, negotiatedOptions=0xc01, connected=true\nTTIINIT enabled=true, TTC cookie enabled=true\n\n"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "event": "CONNECTION_OPENED",
-    "details": "sdu=8192, tdu=2097152 nt: host=phxdbfdf83, port=3484, socketOptions={0=YES, 1=NO, 2=0, 6=1.2, 38=TLS, 40=false, 8=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 9=SSO, 11=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 12=SSO, 46=1, 17=0, 18=false, 20=true, 23=40, 24=50, 25=0}     socket=Socket[addr=phxdbfdf83/100.94.241.218,port=3484,localport=50164] client profile={oracle.net.encryption_types_client=(), oracle.net.crypto_seed=, oracle.net.authentication_services=(), oracle.net.setFIPSMode=false, oracle.net.kerberos5_mutual_authentication=false, oracle.net.encryption_client=ACCEPTED, oracle.net.crypto_checksum_client=ACCEPTED, oracle.net.crypto_checksum_types_client=()} connection options=[host=phxdbfdf83 port=3484 protocol=tcps service_name=cdb1_pdb1.regress.rdbms.dev.us.oracle.com addr=(ADDRESS=(PROTOCOL=tcps)(HOST=phxdbfdf83)(PORT=3484)) conn_data=(DESCRIPTION=(ADDRESS=(PROTOCOL=tcps)(PORT=3484)(HOST=100.94.241.218)(HOSTNAME=phxdbfdf83))(CONNECT_DATA=(CID=(PROGRAM=AppJdbcHarness)(HOST=phxdbfdf83)(USER=aime1))(SERVICE_NAME=cdb1_pdb1.regress.rdbms.dev.us.oracle.com))) done=true] onBreakReset=false, dataEOF=false, negotiatedOptions=0xc01, connected=true TTIINIT enabled=true, TTC cookie enabled=true , cookie found? T4CTTICookie{version=1, connectionProtocolVersion=6, databaseCharSet=873, databaseCharSetFlag=33, databaseNCharSet=2000, databaseRuntimeCapabilities=[2, 1, 0, 1, 24, 0, 127, 1, 0, 0, 0, 0], databaseCompileTimeCapabilities=[6, 1, 1, 1, -17, 15, 1, 37, 1, 1, 1, 1, 1, 1, 1, 127, -1, 3, 16, 3, 3, 1, 1, -1, 1, -1, -1, 1, 12, 1, 1, -1, 1, 6, 12, -10, 9, 127, 5, 15, -1, 13, 11, 0, 63, 0, 0, 0, 0, 0, 0, 2, 1], databasePortage=[120, 56, 54, 95, 54, 52, 47, 76, 105, 110, 117, 120, 32, 50, 46, 52, 46, 120, 120]}"
+    "details": "FINER: I:thread-1 main session attributes Session Attributes: \nsdu=8192, tdu=2097152\nnt: host=phxdbfdf83, port=3484, socketOptions={0=YES, 1=NO, 2=0, 6=1.2, 38=TLS, 40=false, 8=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 9=SSO, 11=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 12=SSO, 46=1, 17=0, 18=false, 20=true, 23=40, 24=50, 25=0}\n    socket=Socket[addr=phxdbfdf83/100.94.241.218,port=3484,localport=50164]\nclient profile={oracle.net.encryption_types_client=(), oracle.net.crypto_seed=, oracle.net.authentication_services=(), oracle.net.setFIPSMode=false, oracle.net.kerberos5_mutual_authentication=false, oracle.net.encryption_client=ACCEPTED, oracle.net.crypto_checksum_client=ACCEPTED, oracle.net.crypto_checksum_types_client=()}\nconnection options=[host=phxdbfdf83 port=3484 protocol=tcps service_name=cdb1_pdb1.regress.rdbms.dev.us.oracle.com addr=(ADDRESS=(PROTOCOL=tcps)(HOST=phxdbfdf83)(PORT=3484)) conn_data=(DESCRIPTION=(ADDRESS=(PROTOCOL=tcps)(PORT=3484)(HOST=100.94.241.218)(HOSTNAME=phxdbfdf83))(CONNECT_DATA=(CID=(PROGRAM=AppJdbcHarness)(HOST=phxdbfdf83)(USER=aime1))(SERVICE_NAME=cdb1_pdb1.regress.rdbms.dev.us.oracle.com))) done=true]\nonBreakReset=false, dataEOF=false, negotiatedOptions=0xc01, connected=true\nTTIINIT enabled=true, TTC cookie enabled=true\n\n"
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "event": "CONNECTION_CLOSED",
-    "details": "null"
+    "details": null
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "event": "CONNECTION_CLOSED",
-    "details": "null"
+    "details": null
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "event": "CONNECTION_CLOSED",
-    "details": "null"
+    "details": null
   },
   {
     "timestamp": "2024-06-20T22:27:12",
     "event": "CONNECTION_OPENED",
-    "details": "sdu=8192, tdu=2097152 nt: host=phxdbfdf83, port=3484, socketOptions={0=YES, 1=NO, 2=0, 6=1.2, 38=TLS, 40=false, 8=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 9=SSO, 11=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 12=SSO, 46=1, 17=0, 18=false, 20=true, 23=40, 24=50, 25=0}     socket=Socket[addr=phxdbfdf83/100.94.241.218,port=3484,localport=50176] client profile={oracle.net.encryption_types_client=(), oracle.net.crypto_seed=, oracle.net.authentication_services=(), oracle.net.setFIPSMode=false, oracle.net.kerberos5_mutual_authentication=false, oracle.net.encryption_client=ACCEPTED, oracle.net.crypto_checksum_client=ACCEPTED, oracle.net.crypto_checksum_types_client=()} connection options=[host=phxdbfdf83 port=3484 protocol=tcps service_name=cdb1_pdb1.regress.rdbms.dev.us.oracle.com addr=(ADDRESS=(PROTOCOL=tcps)(HOST=phxdbfdf83)(PORT=3484)) conn_data=(DESCRIPTION=(ADDRESS=(PROTOCOL=tcps)(PORT=3484)(HOST=100.94.241.218)(HOSTNAME=phxdbfdf83))(CONNECT_DATA=(CID=(PROGRAM=AppJdbcHarness)(HOST=phxdbfdf83)(USER=aime1))(SERVICE_NAME=cdb1_pdb1.regress.rdbms.dev.us.oracle.com))) done=true] onBreakReset=false, dataEOF=false, negotiatedOptions=0xc01, connected=true TTIINIT enabled=true, TTC cookie enabled=true , cookie found? T4CTTICookie{version=1, connectionProtocolVersion=6, databaseCharSet=873, databaseCharSetFlag=33, databaseNCharSet=2000, databaseRuntimeCapabilities=[2, 1, 0, 1, 24, 0, 127, 1, 0, 0, 0, 0], databaseCompileTimeCapabilities=[6, 1, 1, 1, -17, 15, 1, 37, 1, 1, 1, 1, 1, 1, 1, 127, -1, 3, 16, 3, 3, 1, 1, -1, 1, -1, -1, 1, 12, 1, 1, -1, 1, 6, 12, -10, 9, 127, 5, 15, -1, 13, 11, 0, 63, 0, 0, 0, 0, 0, 0, 2, 1], databasePortage=[120, 56, 54, 95, 54, 52, 47, 76, 105, 110, 117, 120, 32, 50, 46, 52, 46, 120, 120]}"
+    "details": "FINER: I:thread-1 main session attributes Session Attributes: \nsdu=8192, tdu=2097152\nnt: host=phxdbfdf83, port=3484, socketOptions={0=YES, 1=NO, 2=0, 6=1.2, 38=TLS, 40=false, 8=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 9=SSO, 11=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 12=SSO, 46=1, 17=0, 18=false, 20=true, 23=40, 24=50, 25=0}\n    socket=Socket[addr=phxdbfdf83/100.94.241.218,port=3484,localport=50176]\nclient profile={oracle.net.encryption_types_client=(), oracle.net.crypto_seed=, oracle.net.authentication_services=(), oracle.net.setFIPSMode=false, oracle.net.kerberos5_mutual_authentication=false, oracle.net.encryption_client=ACCEPTED, oracle.net.crypto_checksum_client=ACCEPTED, oracle.net.crypto_checksum_types_client=()}\nconnection options=[host=phxdbfdf83 port=3484 protocol=tcps service_name=cdb1_pdb1.regress.rdbms.dev.us.oracle.com addr=(ADDRESS=(PROTOCOL=tcps)(HOST=phxdbfdf83)(PORT=3484)) conn_data=(DESCRIPTION=(ADDRESS=(PROTOCOL=tcps)(PORT=3484)(HOST=100.94.241.218)(HOSTNAME=phxdbfdf83))(CONNECT_DATA=(CID=(PROGRAM=AppJdbcHarness)(HOST=phxdbfdf83)(USER=aime1))(SERVICE_NAME=cdb1_pdb1.regress.rdbms.dev.us.oracle.com))) done=true]\nonBreakReset=false, dataEOF=false, negotiatedOptions=0xc01, connected=true\nTTIINIT enabled=true, TTC cookie enabled=true\n\n"
   },
   {
     "timestamp": "2024-06-20T22:28:14",
     "event": "CONNECTION_OPENED",
-    "details": "sdu=8192, tdu=2097152 nt: host=phxdbfdf83, port=3484, socketOptions={0=YES, 1=NO, 2=0, 6=1.2, 38=TLS, 40=false, 8=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 9=SSO, 11=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 12=SSO, 46=1, 17=0, 18=false, 20=true, 23=40, 24=50, 25=0}     socket=Socket[addr=phxdbfdf83/100.94.241.218,port=3484,localport=38852] client profile={oracle.net.encryption_types_client=(), oracle.net.crypto_seed=, oracle.net.authentication_services=(), oracle.net.setFIPSMode=false, oracle.net.kerberos5_mutual_authentication=false, oracle.net.encryption_client=ACCEPTED, oracle.net.crypto_checksum_client=ACCEPTED, oracle.net.crypto_checksum_types_client=()} connection options=[host=phxdbfdf83 port=3484 protocol=tcps service_name=cdb1_pdb1.regress.rdbms.dev.us.oracle.com addr=(ADDRESS=(PROTOCOL=tcps)(HOST=phxdbfdf83)(PORT=3484)) conn_data=(DESCRIPTION=(ADDRESS=(PROTOCOL=tcps)(PORT=3484)(HOST=100.94.241.218)(HOSTNAME=phxdbfdf83))(CONNECT_DATA=(CID=(PROGRAM=AppJdbcHarness)(HOST=phxdbfdf83)(USER=aime1))(SERVICE_NAME=cdb1_pdb1.regress.rdbms.dev.us.oracle.com))) done=true] onBreakReset=false, dataEOF=false, negotiatedOptions=0xc01, connected=true TTIINIT enabled=true, TTC cookie enabled=true , cookie found? T4CTTICookie{version=1, connectionProtocolVersion=6, databaseCharSet=873, databaseCharSetFlag=33, databaseNCharSet=2000, databaseRuntimeCapabilities=[2, 1, 0, 1, 24, 0, 127, 1, 0, 0, 0, 0], databaseCompileTimeCapabilities=[6, 1, 1, 1, -17, 15, 1, 37, 1, 1, 1, 1, 1, 1, 1, 127, -1, 3, 16, 3, 3, 1, 1, -1, 1, -1, -1, 1, 12, 1, 1, -1, 1, 6, 12, -10, 9, 127, 5, 15, -1, 13, 11, 0, 63, 0, 0, 0, 0, 0, 0, 2, 1], databasePortage=[120, 56, 54, 95, 54, 52, 47, 76, 105, 110, 117, 120, 32, 50, 46, 52, 46, 120, 120]}"
+    "details": "FINER: I:thread-1 main session attributes Session Attributes: \nsdu=8192, tdu=2097152\nnt: host=phxdbfdf83, port=3484, socketOptions={0=YES, 1=NO, 2=0, 6=1.2, 38=TLS, 40=false, 8=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 9=SSO, 11=/ade/b/1465033565/oracle/work/jnetadmin_c/cwallet.sso, 12=SSO, 46=1, 17=0, 18=false, 20=true, 23=40, 24=50, 25=0}\n    socket=Socket[addr=phxdbfdf83/100.94.241.218,port=3484,localport=38852]\nclient profile={oracle.net.encryption_types_client=(), oracle.net.crypto_seed=, oracle.net.authentication_services=(), oracle.net.setFIPSMode=false, oracle.net.kerberos5_mutual_authentication=false, oracle.net.encryption_client=ACCEPTED, oracle.net.crypto_checksum_client=ACCEPTED, oracle.net.crypto_checksum_types_client=()}\nconnection options=[host=phxdbfdf83 port=3484 protocol=tcps service_name=cdb1_pdb1.regress.rdbms.dev.us.oracle.com addr=(ADDRESS=(PROTOCOL=tcps)(HOST=phxdbfdf83)(PORT=3484)) conn_data=(DESCRIPTION=(ADDRESS=(PROTOCOL=tcps)(PORT=3484)(HOST=100.94.241.218)(HOSTNAME=phxdbfdf83))(CONNECT_DATA=(CID=(PROGRAM=AppJdbcHarness)(HOST=phxdbfdf83)(USER=aime1))(SERVICE_NAME=cdb1_pdb1.regress.rdbms.dev.us.oracle.com))) done=true]\nonBreakReset=false, dataEOF=false, negotiatedOptions=0xc01, connected=true\nTTIINIT enabled=true, TTC cookie enabled=true\n\n"
   },
   {
     "timestamp": "2024-06-20T22:28:14",
     "event": "CONNECTION_CLOSED",
-    "details": "null"
+    "details": null
   }
 ]
 ```
@@ -478,36 +537,36 @@ Example of the extracted information printed as JSON:
   "summary": {
     "referenceLogFileName": "/Users/youssef/Desktop/logs/ojdbc17-test1.log",
     "currentLogFileName": "/Users/youssef/Desktop/logs/ojdbc17-test2.log",
-    "referenceLogFileSize": "1.363 MB",
-    "currentLogFileSize": "578.626 MB",
-    "referenceLogFileLineCount": 25795,
-    "currentLogFileLineCount": 5643918,
-    "lineCountDelta": "+21779.89%",
+    "referenceLogFileSize": 1362671,
+    "currentLogFileSize": 578625838,
+    "referenceLogFileLineCount": 25796,
+    "currentLogFileLineCount": 5643919,
+    "lineCountDelta": 21779.050,
     "referenceLogFileTimespan": "2024-06-20T22:27:11 to 2024-06-20T22:28:14",
     "referenceLogFileDuration": "PT1M3S",
-    "currentLogFileTimespan": "2024-10-21T00:32:39.117Z to 2024-10-21T00:34:41.424Z",
-    "currentLogFileDuration": "PT2M2.307S"
+    "currentLogFileTimespan": "2024-10-21T00:33:18.470Z to 2024-10-21T00:33:18.470Z",
+    "currentLogFileDuration": "PT0S"
   },
   "performance": {
     "referenceQueryCount": 17,
-    "currentQueryCount": 16572,
-    "queryCountDelta": "+97382.35%",
-    "referenceAverageQueryTime": "19.71 ms",
-    "currentAverageQueryTime": "24.25 ms",
-    "averageQueryTimeDelta": "+23.03%"
+    "currentQueryCount": 0,
+    "queryCountDelta": -100.000,
+    "referenceAverageQueryTime": 20.000,
+    "currentAverageQueryTime": 0.000,
+    "averageQueryTimeDelta": -100.000
   },
   "error": {
-    "referenceErrorCount": 14,
+    "referenceErrorCount": 10,
     "currentErrorCount": 10,
-    "totalErrorsDelta": "-28.57%"
+    "totalErrorsDelta": 0.000
   },
   "network": {
-    "referenceBytesConsumed": "55.197 kB",
-    "currentBytesConsumed": "18.770 MB",
-    "bytesConsumedDelta": "+33905.47%",
-    "referenceBytesProduced": "3.286 MB",
-    "currentBytesProduced": "2.388 MB",
-    "bytesProducedDelta": "-27.33%"
+    "referenceBytesConsumed": 55197,
+    "currentBytesConsumed": 18769512,
+    "bytesConsumedDelta": 33904.590,
+    "referenceBytesProduced": 3285597,
+    "currentBytesProduced": 2387514,
+    "bytesProducedDelta": -27.330
   }
 }
 ```
