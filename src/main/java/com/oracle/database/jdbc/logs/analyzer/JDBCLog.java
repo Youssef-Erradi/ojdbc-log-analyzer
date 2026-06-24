@@ -305,13 +305,11 @@ public class JDBCLog {
     }
 
     if (state.inLogEntry) {
-      state.logEntries.add(new LogEntry(logLocation, state.currentLogBeginLine, -1, state.currentLogBeginPosition));
+      closeCurrentLogEntry(state, -1);
     }
 
     if (state.queryContent != null) {
-      appendQuery(state, state.queryTimestamp, state.queryContent.toString());
-      state.queryTimestamp = null;
-      state.queryContent = null;
+      finishQuery(state);
     }
 
     queries = List.copyOf(state.queries);
@@ -331,19 +329,38 @@ public class JDBCLog {
     if (TRACE_PATTERN.matcher(line).find()) {
       state.traceLines.add(new LogLine(state.lineNumber, state.positionInFile));
       if (state.inLogEntry) {
-        state.logEntries.add(new LogEntry(logLocation, state.currentLogBeginLine, state.lineNumber - 1, state.currentLogBeginPosition));
+        closeCurrentLogEntry(state, state.lineNumber - 1);
         state.inLogEntry = false;
       }
     }
 
     if (LOG_PATTERN.matcher(line).find()) {
       if (state.inLogEntry) {
-        state.logEntries.add(new LogEntry(logLocation, state.currentLogBeginLine, state.lineNumber - 1, state.currentLogBeginPosition));
+        closeCurrentLogEntry(state, state.lineNumber - 1);
       }
-      state.currentLogBeginLine = state.lineNumber;
-      state.currentLogBeginPosition = state.positionInFile;
-      state.inLogEntry = true;
+      startLogEntry(state);
     }
+  }
+
+  /**
+   * Closes the current logical log entry.
+   *
+   * @param state current parse state.
+   * @param endLine 1-based inclusive end line, or {@code -1} when the entry ends at EOF.
+   */
+  private void closeCurrentLogEntry(ParseState state, int endLine) {
+    state.logEntries.add(new LogEntry(logLocation, state.currentLogBeginLine, endLine, state.currentLogBeginPosition));
+  }
+
+  /**
+   * Starts a logical log entry at the current parser position.
+   *
+   * @param state current parse state.
+   */
+  private void startLogEntry(ParseState state) {
+    state.currentLogBeginLine = state.lineNumber;
+    state.currentLogBeginPosition = state.positionInFile;
+    state.inLogEntry = true;
   }
 
   /**
@@ -390,29 +407,41 @@ public class JDBCLog {
    */
   private void collectQuery(ParseState state, String line) {
     if (state.queryContent != null) {
-      state.queryContent.append(line);
-      if (line.contains(", time=")) {
-        appendQuery(state, state.queryTimestamp, state.queryContent.toString());
-        state.queryTimestamp = null;
-        state.queryContent = null;
-      } else {
-        state.queryContent.append("\n");
-      }
+      appendQueryLine(state, line);
       return;
     }
 
     if (QUERIES_PATTERN.matcher(line).find()) {
       state.queryTimestamp = parseTimestampForLine(state, line);
       state.queryContent = new StringBuilder();
-      state.queryContent.append(line);
-      if (line.contains(", time=")) {
-        appendQuery(state, state.queryTimestamp, state.queryContent.toString());
-        state.queryTimestamp = null;
-        state.queryContent = null;
-      } else {
-        state.queryContent.append("\n");
-      }
+      appendQueryLine(state, line);
     }
+  }
+
+  /**
+   * Appends one line to the in-progress query block and finalizes it when complete.
+   *
+   * @param state current parse state.
+   * @param line current stripped line.
+   */
+  private void appendQueryLine(ParseState state, String line) {
+    state.queryContent.append(line);
+    if (line.contains(", time=")) {
+      finishQuery(state);
+    } else {
+      state.queryContent.append("\n");
+    }
+  }
+
+  /**
+   * Finalizes the in-progress query block and clears query parse state.
+   *
+   * @param state current parse state.
+   */
+  private void finishQuery(ParseState state) {
+    appendQuery(state, state.queryTimestamp, state.queryContent.toString());
+    state.queryTimestamp = null;
+    state.queryContent = null;
   }
 
   /**
@@ -441,12 +470,10 @@ public class JDBCLog {
         return;
       }
 
-      if (state.waitingForCookie) {
-        if (line.endsWith("logon")) {
-          state.waitingForCookie = false;
-          state.waitingForCookieAfterLogon = true;
-          return;
-        }
+      if (state.waitingForCookie && line.endsWith("logon")) {
+        state.waitingForCookie = false;
+        state.waitingForCookieAfterLogon = true;
+        return;
       }
 
       int index = line.indexOf("cookie found?");
@@ -462,10 +489,7 @@ public class JDBCLog {
         state.openDetails.toString()
       ));
 
-      state.openTimestamp = null;
-      state.openDetails = null;
-      state.waitingForCookie = false;
-      state.waitingForCookieAfterLogon = false;
+      clearOpenConnectionState(state);
       return;
     }
 
@@ -477,8 +501,7 @@ public class JDBCLog {
     if (state.pendingLogonLine != null) {
       String combined = state.pendingLogonLine + "\n" + line;
       if (OPENED_CONNECTIONS_PATTERN.matcher(combined).find()) {
-        state.openTimestamp = parseTimestampForLine(state, state.pendingLogonLine);
-        state.openDetails = new StringBuilder();
+        beginOpenConnectionEvent(state, state.pendingLogonLine);
         state.pendingLogonLine = null;
         return;
       }
@@ -490,11 +513,33 @@ public class JDBCLog {
     }
 
     if (OPENED_CONNECTIONS_PATTERN.matcher(line).find()) {
-      state.openTimestamp = parseTimestampForLine(state, line);
-      state.openDetails = new StringBuilder();
-      state.waitingForCookie = false;
-      state.waitingForCookieAfterLogon = false;
+      beginOpenConnectionEvent(state, line);
     }
+  }
+
+  /**
+   * Initializes state for an open-connection event.
+   *
+   * @param state current parse state.
+   * @param line line containing the event timestamp.
+   */
+  private void beginOpenConnectionEvent(ParseState state, String line) {
+    state.openTimestamp = parseTimestampForLine(state, line);
+    state.openDetails = new StringBuilder();
+    state.waitingForCookie = false;
+    state.waitingForCookieAfterLogon = false;
+  }
+
+  /**
+   * Clears state used while parsing an open-connection event.
+   *
+   * @param state current parse state.
+   */
+  private void clearOpenConnectionState(ParseState state) {
+    state.openTimestamp = null;
+    state.openDetails = null;
+    state.waitingForCookie = false;
+    state.waitingForCookieAfterLogon = false;
   }
 
   /**
@@ -592,7 +637,7 @@ public class JDBCLog {
           return;
         }
 
-        ZonedDateTime timestamp = ZonedDateTime.parse(line.split(UCP)[0].strip(), LogError.UCP_TIMESTAMP_FORMATTER);
+        ZonedDateTime timestamp = parseUCPTimestamp(line);
         if (state.zonedStart == null || timestamp.isBefore(state.zonedStart)) {
           state.zonedStart = timestamp;
         }
@@ -601,12 +646,11 @@ public class JDBCLog {
           state.zonedEnd = timestamp;
         }
       } else {
-        Matcher matcher = DEFAULT_TIMESTAMP_PREFIX.matcher(line);
-        if (!matcher.find()) {
+        LocalDateTime timestamp = parseDefaultTimestamp(line);
+        if (timestamp == null) {
           return;
         }
 
-        LocalDateTime timestamp = LocalDateTime.parse(matcher.group(1), LogError.DEFAULT_TIMESTAMP_FORMATTER);
         if (state.localStart == null || timestamp.isBefore(state.localStart)) {
           state.localStart = timestamp;
         }
@@ -630,18 +674,43 @@ public class JDBCLog {
   private String parseTimestampForLine(ParseState state, String line) {
     try {
       if (Boolean.TRUE.equals(state.isUCPFormatted) && line.contains(UCP)) {
-        return ZonedDateTime.parse(line.split(UCP)[0].strip(), LogError.UCP_TIMESTAMP_FORMATTER).toString();
+        return parseUCPTimestamp(line).toString();
       }
 
-      Matcher matcher = DEFAULT_TIMESTAMP_PREFIX.matcher(line);
-      if (matcher.find()) {
-        return LocalDateTime.parse(matcher.group(1), LogError.DEFAULT_TIMESTAMP_FORMATTER).toString();
+      LocalDateTime timestamp = parseDefaultTimestamp(line);
+      if (timestamp != null) {
+        return timestamp.toString();
       }
     } catch (DateTimeParseException | ArrayIndexOutOfBoundsException ignored) {
       // best effort
     }
 
     return null;
+  }
+
+  /**
+   * Parses a UCP-formatted timestamp from a log line.
+   *
+   * @param line current stripped line.
+   * @return parsed timestamp.
+   */
+  private ZonedDateTime parseUCPTimestamp(String line) {
+    return ZonedDateTime.parse(line.split(UCP)[0].strip(), LogError.UCP_TIMESTAMP_FORMATTER);
+  }
+
+  /**
+   * Parses a default-format timestamp from a log line.
+   *
+   * @param line current stripped line.
+   * @return parsed timestamp, or {@code null} when no default timestamp prefix is present.
+   */
+  private LocalDateTime parseDefaultTimestamp(String line) {
+    Matcher matcher = DEFAULT_TIMESTAMP_PREFIX.matcher(line);
+    if (!matcher.find()) {
+      return null;
+    }
+
+    return LocalDateTime.parse(matcher.group(1), LogError.DEFAULT_TIMESTAMP_FORMATTER);
   }
 
   /**
